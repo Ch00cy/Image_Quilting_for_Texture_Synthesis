@@ -3,19 +3,19 @@ import numpy as np
 from itertools import product
 from matplotlib import pyplot as plt
 
-inf = np.float('inf')
+inf = np.float('inf')	# 그 자체로 ∞를 의미
 
 def rasterScan(image, blocksize, step=None):
 	'''
 	Perform raster scan for image with squared block size "b"
-	- If block size is not divisible by image size, then take all except last block
+	- If block size is not divisible(나눌 수 있는) by image size, then take all except last block
 	- And for the last block, take the block from the other end
 	'''
 	block_list = []
 	if step is None:
 		step = blocksize
 
-	H, W = image.shape[:2]
+	H, W = image.shape[:2]	# opencv -> height, weight값 넣어줌
 	Y = range(0, H-blocksize, step)
 	X = range(0, W-blocksize, step)
 	if H%step != 0:
