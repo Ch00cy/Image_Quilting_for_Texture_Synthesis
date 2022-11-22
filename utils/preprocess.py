@@ -1,7 +1,7 @@
 ## Handles all the preprocessing
 import numpy as np	# 벡터 및 행렬 연산
 from itertools import product	# itertools : 순열, 조합, product 구현,사용
-								# poduct : 데카르트 곱 (cartesian product) = 2개 이상의 리스트의 모든 조합 구함
+				# poduct : 데카르트 곱 (cartesian product) = 2개 이상의 리스트의 모든 조합 구함
 
 inf = np.float('inf')	# 그 자체로 ∞를 의미
 
