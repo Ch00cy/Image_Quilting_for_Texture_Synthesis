@@ -1,11 +1,14 @@
-import os
-import numpy as np
-import cv2
-from matplotlib import pyplot as plt
-from math import ceil
-from itertools import product
+import os	# 파이썬 기본 내제 모율, 운영체제와 상호작용을 돕는 다양한 기능 제공 (디렉토리 확인변경, csv 파일 호출 ..)
+import numpy as np	# 벡터 및 행렬 연산
+import cv2	# OpenCV import -> 오픈소스 컴퓨터 비전 및 머신러닝 라이브러리
+		# 먼저 설치 : pip install opencv-python
+from matplotlib import pyplot as plt	# matplotlib : 자료를 시각화 하는데 사용하는 대표 라이브러리 , 그래프 등 그림
+from math import ceil	# math 함수 -> ceil : 올림 (int형)
+from itertools import product	# # itertools : 순열, 조합, product 구현,사용
+				# poduct : 데카르트 곱 (cartesian product) = 2개 이상의 리스트의 모든 조합 구함
 
-inf = np.float('inf')
+
+inf = np.float('inf')	# # 그 자체로 ∞를 의미
 ErrorCombinationFunc = np.add
 
 
