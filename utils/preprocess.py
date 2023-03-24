@@ -3,7 +3,7 @@ import numpy as np	# 벡터 및 행렬 연산
 from itertools import product	# itertools : 순열, 조합, product 구현,사용
 				# poduct : 데카르트 곱 (cartesian product) = 2개 이상의 리스트의 모든 조합 구함
 
-inf = np.float('inf')	# 그 자체로 ∞를 의미
+inf = float('inf')	# 그 자체로 ∞를 의미
 
 #https://wh00300.tistory.com/204
 def rasterScan(image, blocksize, step=None):    # raster scan order : 데이터를 스캐닝 하는 방법
@@ -31,7 +31,7 @@ def rasterScan(image, blocksize, step=None):    # raster scan order : 데이터�
 		for x in X:	# 1) 가로 부터 훑음
 			block_list.append(image[y:y+blocksize, x:x+blocksize, :])	# block_list 에 append
 																		# opencv -> image : (y크기(height),x크기(width),색상 채널)(픽셀)
-																		# image 에서 정해진 사이즈의 블록들 값정보 구분 , 색은 전체
+								 										# image 에서 정해진 사이즈의 블록들 값정보 구분 , 색은 전체
 
 	print("Created {} blocks.".format(len(block_list)))	# format : 문자열 포메팅 , 문자열 중간중간에 특정 변수값 넣기위해 사용
 														# 사용 :{인덱스0}, {인덱스1}'.format(값0, 값1)
