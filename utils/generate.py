@@ -499,7 +499,7 @@ def r_generateTextureMap(image, blocksize, overlap, y, x, tolerance, mask):	# �
 #######################
 
 
-def newDirection(image, exImg, blocksize, overlap, outH, outW, tolerance):  # 방향성 더해주기 위한 내가만든 함수
+def Pre_RotateExImg(image, exImg, blocksize, overlap, outH, outW, tolerance):  # 방향성 더해주기 위한 내가만든 함수
 	# 사용: generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
 	# ceil() : 소수점 자리의 숫자를 무조건 올리는 함수
 	nH = int(ceil((outH - blocksize) * 1.0 / (blocksize - overlap)))  # 최종 이미지 크기에 오버랩 부분을 제외한 실제 블록들이 몇개 들어가는가?
@@ -642,47 +642,6 @@ def newDirection(image, exImg, blocksize, overlap, outH, outW, tolerance):  # �
 		r_texture_black = r_texture_black[:h, :w, :]	# r_generateTextureMap () 함수 시 블록 사이즈에 나눠떨어지게 크기가 생성되므로 h,w 라도 좀 더 크게 잡힌다. 따라서 크기가 달라 아래에서 연산이 안되므로 조절해준다.
 		r_texture = rotated_seta * mask_black + r_texture_black * (1-mask_black)
 
-
-		# # 왼쪽 위 부분
-		# tmp = black_h
-		# for y in range(black_w):  # 원래대로라면 line_3 이 들어가야 하지만 검은 삼각형이 w,h가 같지않으므로 위에서부터 1칸씩 빼면서 내려가면 깔끔하게 삼각형이 안채워져서 원본이 정사각형이라는 가정 하(이것도 상관없는것같긴한데..)에 깔끔한 검은삼각형을 채우기 위하여 w,h가 같다고 가정하고 채워주기 위해 w=h 로 하였다..
-		# 	for x in range(tmp):
-		# 		startBlock = image[randH:randH + blocksize, randW:randW + blocksize]  # 랜덤한 위치에서 시작하는 블록 사이즈만큼 잘라서 가져옴
-		# 		textureMap[:blocksize, :blocksize, :] = startBlock  # 0으로 초기화된 맵에서 첫번째 블록에 랜덤하게 가져온 블록 대입함
-		#
-		# 		blkIndexI = i * (blocksize - overlap)
-		# 		blkIndexJ = j * (blocksize - overlap)
-		# 		# Find the left and top block, and the min errors independently
-		# 		refBlockLeft = textureMap[(blkIndexI):(blkIndexI + blocksize), (blkIndexJ - blocksize + overlap):(blkIndexJ + overlap)]
-		# 		refBlockTop = textureMap[(blkIndexI - blocksize + overlap):(blkIndexI + overlap), (blkIndexJ):(blkIndexJ + blocksize)]
-		#
-		# 		patchBlock = findPatchBoth(refBlockLeft, refBlockTop, image, blocksize, overlap, tolerance)
-		# 		minCutPatch = getMinCutPatchBoth(refBlockLeft, refBlockTop, patchBlock, blocksize, overlap)
-		#
-		# 		textureMap[(blkIndexI):(blkIndexI + blocksize), (blkIndexJ):(blkIndexJ + blocksize)] = minCutPatch
-		#
-		# 	tmp -= 1
-		# # 왼쪽 아래 부분
-		# tmp = 1
-		# for y in range(L - black_h, L):
-		# 	for x in range(tmp):
-		# 		mask_black[y, x] = 0
-		# 	tmp += 1
-		# # 오른쪽 위 부분
-		# tmp = black_w
-		# for y in range(black_h):
-		# 	for x in range(L - tmp, L):
-		# 		mask_black[y, x] = 0
-		# 	tmp -= 1
-		# # 오른쪽 아래 부분
-		# tmp = 0
-		# for y in range(L - black_h,
-		# 			   L):  # 원래대로라면 line_3 이 들어가야 하지만 검은 삼각형이 w,h가 같지않으므로 위에서부터 1칸씩 빼면서 내려가면 깔끔하게 삼각형이 안채워져서 원본이 정사각형이라는 가정 하(이것도 상관없는것같긴한데..)에 깔끔한 검은삼각형을 채우기 위하여 w,h가 같다고 가정하고 채워주기 위해 w=h 로 하였다..
-		# 	for x in range(L - tmp, L):
-		# 		mask_black[y, x] = 0
-		# 	tmp += 1
-		# pre_img = rotated_seta * mask_black
-
 		plt.imshow(r_texture_black)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
 		plt.show()
 
@@ -695,6 +654,9 @@ def newDirection(image, exImg, blocksize, overlap, outH, outW, tolerance):  # �
 		# cv2.imwrite("8img_" + str(i) + ".png", pre_img)
 
 	return r_texture
+
+
+
 
 
 ###############################################################################################
