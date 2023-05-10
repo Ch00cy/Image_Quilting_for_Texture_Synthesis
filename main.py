@@ -58,16 +58,23 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 
 	for i in range(args.num_outputs):	# 결과 개수 만큼 반복
 		# 수정
-		# exImg = generateTextureMap(image, block_size, overlap, H, W, args.tolerance)
-		# plt.imshow(exImg)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-		# plt.show()	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-		print("blocksize:{} , overlap:{}".format(block_size,overlap))
-		textureMap = newDirection(image, image, block_size, overlap, outH, outW, args.tolerance)
+		textureMap = generateTextureMap(image, block_size, overlap, H, W, args.tolerance)
 
-		# #textureMap = generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)	# generate.py -> generateTextureMap(image, blocksize, overlap, outH, outW, tolerance) 함수 실행
-		# if args.plot:	# plot 보여줄지 true 면 실행 (디폴트 1)
-		# 	plt.imshow(textureMap)	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-		# 	plt.show()	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+		# print("blocksize:{} , overlap:{}".format(block_size,overlap))
+		# textureMap = newDirection(image, image, block_size, overlap, outH, outW, args.tolerance)
+
+		# Save
+		textureMap = (255*textureMap).astype(np.uint8)	# 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
+		textureMap = cv2.cvtColor(textureMap, cv2.COLOR_RGB2BGR)
+
+		cv2.imwrite(args.output_file, textureMap)
+
+		#textureMap = generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)	# generate.py -> generateTextureMap(image, blocksize, overlap, outH, outW, tolerance) 함수 실행
+		if args.plot:	# plot 보여줄지 true 면 실행 (디폴트 1)
+			plt.imshow(textureMap)	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+			plt.show()	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+
+
 		#
 		# # Save
 		# textureMap = (255*textureMap).astype(np.uint8)	# 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
