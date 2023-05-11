@@ -498,7 +498,7 @@ def r_generateTextureMap(image, blocksize, overlap, y, x, tolerance, mask):	# �
 
 #######################
 
-
+# 전처리 : 1. 예제 이미지의 전처리
 def Pre_RotateExImg(image, exImg, blocksize, overlap, outH, outW, tolerance):  # 방향성 더해주기 위한 내가만든 함수
 	# 사용: generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
 	# ceil() : 소수점 자리의 숫자를 무조건 올리는 함수
@@ -639,22 +639,108 @@ def Pre_RotateExImg(image, exImg, blocksize, overlap, outH, outW, tolerance):  #
 
 		# rotation -> 검은 삼각형 부분 => 합성 #########
 		r_texture_black = r_generateTextureMap(rotated_seta, blocksize, overlap, h, w, tolerance, mask_black)
-		r_texture_black = r_texture_black[:h, :w, :]	# r_generateTextureMap () 함수 시 블록 사이즈에 나눠떨어지게 크기가 생성되므로 h,w 라도 좀 더 크게 잡힌다. 따라서 크기가 달라 아래에서 연산이 안되므로 조절해준다.
-		r_texture = rotated_seta * mask_black + r_texture_black * (1-mask_black)
 
-		plt.imshow(r_texture_black)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-		plt.show()
+		# 어차피 회전 예제 이미지의 방향값을 가져오는 것이 목적이므로 더 자연스러운 새로만든 텍스쳐를 사용한다.
+		r_texture_black1 = r_texture_black[:h, :w, :]	# r_generateTextureMap () 함수 시 블록 사이즈에 나눠떨어지게 크기가 생성되므로 h,w 라도 좀 더 크게 잡힌다. 따라서 크기가 달라 아래에서 연산이 안되므로 조절해준다.
+		r_texture = rotated_seta * mask_black + r_texture_black1 * (1-mask_black)
 
-		# img8.append(pre_img)
-		#
-		# # Save
-		# pre_img = (255 * pre_img).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
-		# pre_img = cv2.cvtColor(pre_img, cv2.COLOR_RGB2BGR)
-		#
-		# cv2.imwrite("8img_" + str(i) + ".png", pre_img)
+		# plt.imshow(r_texture_black)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+		# plt.show()
 
-	return r_texture
+		img8.append(r_texture_black)
 
+		# Save
+		pre_img = (255 * r_texture_black).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
+		pre_img = cv2.cvtColor(pre_img, cv2.COLOR_RGB2BGR)
+
+		cv2.imwrite("8img_" + str(i) + ".png", pre_img)
+
+		pre_img1 = (255 * r_texture).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
+		pre_img1 = cv2.cvtColor(pre_img1, cv2.COLOR_RGB2BGR)
+
+		cv2.imwrite("10img_" + str(i) + ".png", pre_img1)
+
+	return img8
+
+# 전처리 : 2. 합성 대상 이미지 S의 재정의
+def Pre_AddRotateIndex(img8):
+	for i in range(len(img8)):
+		img = img8[i]
+		h = img.shape[0]
+		w = img.shape[1]
+
+		addArray = np.full((h,w,1), i)
+		new = np.concatenate([img, addArray], axis=2)
+
+	return new
+
+def Pre_FindNeighbor(img8):
+	for i in range(len(img8)):
+		img = img8[i]
+		h = img.shape[0]
+		w = img.shape[1]
+
+		for y in range(h):
+			for x in range(w):
+				# 예외처리 - 안해주면 통째로 [] 로 처리돼서 error 계산시 NaN 으로 나옴 (숫자 아니라는 뜻)
+				if y<2:
+					if x<2:
+						NEi = img[:x + 2 + 1][:y + 2 + 1]
+					elif w-x<2:
+						NEi = img[x - 2:][:y + 2 + 1]
+					else:
+						NEi = img[x - 2:x + 2 + 1][:y + 2 + 1]
+				elif h-y<2:
+					if x<2:
+						NEi = img[:x + 2 + 1][y-2:]
+					elif w-x<2:
+						NEi = img[x - 2:][y-2:]
+					else:
+						NEi = img[x - 2:x + 2 + 1][y-2:]
+				elif x<2:
+					if (y>=2)and(h-y>=2):
+						NEi = img[:x+2+1][y-2:y+2+1]
+				elif w-x<2:
+					if (y>=2)and(h-y>=2):
+						NEi = img[x-2:][y-2:y+2+1]
+				else:
+					NEi = img[x - 2:x + 2 + 1][y - 2:y + 2 + 1]
+
+				tmp = []
+				for j in range(len(img8)):
+
+					# 예외처리 - 안해주면 통째로 [] 로 처리돼서 error 계산시 NaN 으로 나옴 (숫자 아니라는 뜻)
+					if y < 2:
+						if x < 2:
+							NEj = img8[j][:x + 2 + 1][:y + 2 + 1]
+						elif w - x < 2:
+							NEj = img8[j][x - 2:][:y + 2 + 1]
+						else:
+							NEj = img8[j][x - 2:x + 2 + 1][:y + 2 + 1]
+					elif h - y < 2:
+						if x < 2:
+							NEj = img8[j][:x + 2 + 1][y - 2:]
+						elif w - x < 2:
+							NEj = img8[j][x - 2:][y - 2:]
+						else:
+							NEj = img8[j][x - 2:x + 2 + 1][y - 2:]
+					elif x < 2:
+						if (y>=2)and(h-y>=2):
+							NEj = img8[j][:x + 2 + 1][y - 2:y + 2 + 1]
+					elif w - x < 2:
+						if (y>=2)and(h-y>=2):
+							NEj = img8[j][x - 2:][y - 2:y + 2 + 1]
+					else:
+						NEj = img8[j][x - 2:x + 2 + 1][y - 2:y + 2 + 1]
+
+					print("{},{} 에서의 ".format(y, x))
+					print("i:{} , j:{}".format(NEi, NEj))
+
+					err = ((NEi[:3] - NEj[:3]) ** 2).mean()	# error 를 어떻게 구하는지에 대한 언급이 없어서 기존 error 구하는 공식 가져옴
+					print("err: {}".format(err))
+					tmp.append(err)
+				new_tmp = sorted(tmp)
+				del new_tmp[3:]
 
 
 
