@@ -358,13 +358,12 @@ def generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	# main
 	# [(H기준 : nH(들어가는 블록개수) * (오버랩 뺀 블록실제사이즈) + 마지막에 오버랩 안되므로 블록 하나 더 사이즈) , (W기준 동일) , 색상] => 0으로 초기화
 	# Starting index and block
 	H, W = image.shape[:2]
-	while True:
-		randH = np.random.randint(H - blocksize)  # 블록사이즈 한줄 뺀 값에서 랜덤한 값
-		randW = np.random.randint(W - blocksize)  # 블록사이즈 한줄 뺀 값에서 랜덤한 값
-		if (image[randH:randH+blocksize, randW:randW+blocksize]).all(0):
-
-
-
+	randH = np.random.randint(H - blocksize)	# 블록사이즈 한줄 뺀 값에서 랜덤한 값
+	randW = np.random.randint(W - blocksize)	# 블록사이즈 한줄 뺀 값에서 랜덤한 값
+	# randH = np.random.randint(10)	# 블록사이즈 한줄 뺀 값에서 랜덤한 값
+	# randH = int((randH-5)+(H/2))
+	# randW = np.random.randint(10)	# 블록사이즈 한줄 뺀 값에서 랜덤한 값
+	# randW = int((randW - 5) + (W / 2))
 
 	startBlock = image[randH:randH+blocksize, randW:randW+blocksize]	# 랜덤한 위치에서 시작하는 블록 사이즈만큼 잘라서 가져옴
 	textureMap[:blocksize, :blocksize, :] = startBlock	# 0으로 초기화된 맵에서 첫번째 블록에 랜덤하게 가져온 블록 대입함
