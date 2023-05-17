@@ -46,16 +46,16 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 	print("Image size: ({}, {})".format(*image.shape[:2]))
 	print("Image shape: {}".format(image.shape))
 
-	image = cv2.resize(image, (200, 200))
+	# image = cv2.resize(image, (200, 200))
 	H, W = image.shape[:2]	# 이미지 Height, Width
 	outH, outW = int(scale*H), int(scale*W)	# 아웃풋 결과 : 이미지의 scale(4) 배로 키워줌
 
 	# 수정 - 추가부분
 	# 이미지 사이즈 w,h중 작은 것에 맞춰서 정사각형으로 크기조절
-	# if H>W:
-	# 	image = cv2.resize(image, (W, W))
-	# else:
-	# 	image = cv2.resize(image, (H, H))
+	if H>W:
+		image = cv2.resize(image, (W, W))
+	else:
+		image = cv2.resize(image, (H, H))
 
 	for i in range(args.num_outputs):	# 결과 개수 만큼 반복
 		# 수정

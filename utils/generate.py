@@ -364,11 +364,14 @@ def generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	# main
 		randW = np.random.randint(W - blocksize)	# 블록사이즈 한줄 뺀 값에서 랜덤한 값
 
 		count_black=0
+		a=0
 		for i in range(randH,randH + blocksize+1):
 			for j in range(randW,randW + blocksize+1):
-				if (image[randH:randH+blocksize, randW:randW+blocksize]==(0,0,0)).all():
+				a+=1
+				if (image[i,j]==[0,0,0]).all():
 					count_black += 1
-
+					print("^^")
+		print("block:{}, a:{}".format(count_black,a))
 		if count_black<(blocksize*blocksize*(1/2)):
 			break
 
