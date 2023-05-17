@@ -369,8 +369,11 @@ def generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	# main
 				if (image[randH:randH+blocksize, randW:randW+blocksize]==(0,0,0)).all():
 					count_black += 1
 
-		if count_black<(blocksize*(2/3)):
+		if count_black<(blocksize*blocksize*(1/2)):
 			break
+
+	plt.imshow(image[randH:randH+blocksize, randW:randW+blocksize])  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+	plt.show()
 
 	startBlock = image[randH:randH+blocksize, randW:randW+blocksize]	# 랜덤한 위치에서 시작하는 블록 사이즈만큼 잘라서 가져옴
 	textureMap[:blocksize, :blocksize, :] = startBlock	# 0으로 초기화된 맵에서 첫번째 블록에 랜덤하게 가져온 블록 대입함
