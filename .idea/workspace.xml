@@ -6,6 +6,22 @@
   <component name="ChangeListManager">
     <list default="true" id="fd97d4e3-11f9-4cd9-9e09-06a5579345e9" name="변경" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/10img_1.png" beforeDir="false" afterPath="$PROJECT_DIR$/10img_1.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/10img_2.png" beforeDir="false" afterPath="$PROJECT_DIR$/10img_2.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/10img_3.png" beforeDir="false" afterPath="$PROJECT_DIR$/10img_3.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/10img_4.png" beforeDir="false" afterPath="$PROJECT_DIR$/10img_4.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/10img_5.png" beforeDir="false" afterPath="$PROJECT_DIR$/10img_5.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/10img_6.png" beforeDir="false" afterPath="$PROJECT_DIR$/10img_6.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/10img_7.png" beforeDir="false" afterPath="$PROJECT_DIR$/10img_7.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/10img_8.png" beforeDir="false" afterPath="$PROJECT_DIR$/10img_8.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/8img_1.png" beforeDir="false" afterPath="$PROJECT_DIR$/8img_1.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/8img_2.png" beforeDir="false" afterPath="$PROJECT_DIR$/8img_2.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/8img_3.png" beforeDir="false" afterPath="$PROJECT_DIR$/8img_3.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/8img_4.png" beforeDir="false" afterPath="$PROJECT_DIR$/8img_4.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/8img_5.png" beforeDir="false" afterPath="$PROJECT_DIR$/8img_5.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/8img_6.png" beforeDir="false" afterPath="$PROJECT_DIR$/8img_6.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/8img_7.png" beforeDir="false" afterPath="$PROJECT_DIR$/8img_7.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/8img_8.png" beforeDir="false" afterPath="$PROJECT_DIR$/8img_8.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/generate.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/generate.py" afterDir="false" />
     </list>
@@ -25,15 +41,15 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master",
-    "last_opened_file_path": "E:/Project_Ch00cy/CGVR/Image_Quilting_for_Texture_Synthesis",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;last_opened_file_path&quot;: &quot;E:/Project_Ch00cy/CGVR/Image_Quilting_for_Texture_Synthesis&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="Python.main">
     <configuration name="generate" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Image_Quilting_for_Texture_Synthesis" />

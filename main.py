@@ -59,12 +59,12 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 
 	for i in range(args.num_outputs):	# 결과 개수 만큼 반복
 		# 수정
-		textureMap = generateTextureMap(image, block_size, overlap, H, W, args.tolerance)
+		textureMap = fin_generateTextureMap(image, block_size, overlap, H, W, args.tolerance)
 
 		# print("blocksize:{} , overlap:{}".format(block_size,overlap))
 		# textureMaps = Pre_RotateExImg(image, image, block_size, overlap, outH, outW, args.tolerance)
-		#textureMaps = Pre_AddRotateIndex(textureMaps)
-		#textureMaps = Pre_FindNeighbor(textureMaps)
+		# textureMaps = Pre_AddRotateIndex(textureMaps)
+		# textureMaps = Pre_FindNeighbor(textureMaps)
 
 		# Save
 		# textureMap = (255*textureMap).astype(np.uint8)	# 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
@@ -73,19 +73,19 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 		# cv2.imwrite(args.output_file, textureMap)
 
 		# #textureMap = generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)	# generate.py -> generateTextureMap(image, blocksize, overlap, outH, outW, tolerance) 함수 실행
-		if args.plot:	# plot 보여줄지 true 면 실행 (디폴트 1)
-			plt.imshow(textureMap)	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-			plt.show()	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+		# if args.plot:	# plot 보여줄지 true 면 실행 (디폴트 1)
+		# 	plt.imshow(textureMap)	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+		# 	plt.show()	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
 
 
 		#
 		# Save
-		textureMap = (255*textureMap).astype(np.uint8)	# 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
-		textureMap = cv2.cvtColor(textureMap, cv2.COLOR_RGB2BGR)
-
-		if args.num_outputs == 1:
-			cv2.imwrite(args.output_file, textureMap)
-			print("Saved output to {}".format(args.output_file))
-		else:
-			cv2.imwrite(args.output_file.replace(".", "_{}.".format(i)), textureMap)
-			print("Saved output to {}".format(args.output_file.replace(".", "_{}.".format(i))))
+		# textureMap = (255*textureMap).astype(np.uint8)	# 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
+		# textureMap = cv2.cvtColor(textureMap, cv2.COLOR_RGB2BGR)
+		#
+		# if args.num_outputs == 1:
+		# 	cv2.imwrite(args.output_file, textureMap)
+		# 	print("Saved output to {}".format(args.output_file))
+		# else:
+		# 	cv2.imwrite(args.output_file.replace(".", "_{}.".format(i)), textureMap)
+		# 	print("Saved output to {}".format(args.output_file.replace(".", "_{}.".format(i))))
