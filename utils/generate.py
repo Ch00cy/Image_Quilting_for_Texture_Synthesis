@@ -12,7 +12,7 @@ from itertools import product	# itertools : 순열, 조합, product 구현,사�
 inf = float('inf')	# 그 자체로 ∞를 의미
 ErrorCombinationFunc = np.add	# ?? np.add: array 요소 단위로 덧셈 계산..
 
-
+# original
 def findPatchHorizontal(refBlock, texture, blocksize, overlap, tolerance):	# tolerance : 허용오차
 	'''
 	Find best horizontal match from the texture
@@ -39,7 +39,7 @@ def findPatchHorizontal(refBlock, texture, blocksize, overlap, tolerance):	# tol
 	return texture[y:y+blocksize, x:x+blocksize]	# 텍스쳐에서 해당 블록 return
 
 
-
+# original
 def findPatchBoth(refBlockLeft, refBlockTop, texture, blocksize, overlap, tolerance):
 	'''
 	Find best horizontal and vertical match from the texture
@@ -64,7 +64,7 @@ def findPatchBoth(refBlockLeft, refBlockTop, texture, blocksize, overlap, tolera
 	return texture[y:y+blocksize, x:x+blocksize]	# 텍스쳐에서 해당 블록 return
 
 
-
+# original
 def findPatchVertical(refBlock, texture, blocksize, overlap, tolerance):
 	'''
 	Find best vertical match from the texture
@@ -88,7 +88,7 @@ def findPatchVertical(refBlock, texture, blocksize, overlap, tolerance):
 	return texture[y:y+blocksize, x:x+blocksize]	# 텍스쳐에서 해당 블록 return
 
 #추가#########################
-
+# 8회전시 합성부분
 def r_findPatchHorizontal(refBlock, texture, blocksize, overlap, tolerance, mask):	# tolerance : 허용오차
 	'''
 	Find best horizontal match from the texture
@@ -118,7 +118,7 @@ def r_findPatchHorizontal(refBlock, texture, blocksize, overlap, tolerance, mask
 	return texture[yy:yy+blocksize, xx:xx+blocksize]	# 텍스쳐에서 해당 블록 return
 
 
-
+# 8회전시 합성부분
 def r_findPatchBoth(refBlockLeft, refBlockTop, texture, blocksize, overlap, tolerance, mask):
 	'''
 	Find best horizontal and vertical match from the texture
@@ -148,7 +148,7 @@ def r_findPatchBoth(refBlockLeft, refBlockTop, texture, blocksize, overlap, tole
 	return texture[yy:yy+blocksize, xx:xx+blocksize]	# 텍스쳐에서 해당 블록 return
 
 
-
+# 8회전시 합성부분
 def r_findPatchVertical(refBlock, texture, blocksize, overlap, tolerance, mask):
 	'''
 	Find best vertical match from the texture
@@ -178,6 +178,127 @@ def r_findPatchVertical(refBlock, texture, blocksize, overlap, tolerance, mask):
 	return texture[yy:yy+blocksize, xx:xx+blocksize]	# 텍스쳐에서 해당 블록 return
 #############################
 
+#추가#########################
+# tan 추가 합성
+def t_findPatchHorizontal(refBlock, texture, blocksize, overlap, tolerance, mask, blkIdx):	# tolerance : 허용오차
+	'''
+	Find best horizontal match from the texture
+	사용: findPatchHorizontal(refBlock, image, blocksize, overlap, tolerance)
+	'''
+	H, W = texture.shape[:2]	# 튜플 압축 풀기 -> 해당 texture 의 rows, columns  값 추출
+	errMat = np.zeros((H-blocksize, W-blocksize)) + inf	# np.zeros : 0으로 채워진 array 생성 / [[W-blocksize 만큼]*H-blocksize만큼] 0으로된 2차원 배열 생성 / inf 는 왜더하는지는 모르겠음???
+	for i, j in product(range(H-blocksize), range(W-blocksize)):	# product : 중복 순열 , 데이터를 뽑아 일렬로 나열하는 모든 경우의 수 / range : 0~해당 값까지
+																	# openCV 경우 -> (rows, columns, channels) 튜플 보유,1,2, ... ,H-blocksize] [0,1,2, ... , W-blocksize] => (0,0),(0,1)..(0,W-blocksize),(1,0),...,(H-blocksize,W-blocksize)
+		rmsVal = ((texture[i:i+blocksize, j:j+overlap] - refBlock[:, -overlap:])**2).mean()	# (이웃 블록의 오버랩 부분 - 각 블록의 오버랩 부분) 제곱 의 평균
+		if rmsVal > 0:
+			errMat[i, j] = rmsVal	# 텍스쳐 크기에서 블록사이즈만큼 한줄 작아진 배열에 대입
+
+	minVal = np.min(errMat)	# 에러범위 값 중 가장 작은 것
+	y, x = np.where(errMat < (1.0 + tolerance)*(minVal))	# np.where: 조건에 맞는 위치 인덱스 찾기 / 해당 허용오차보다 작은 E 고름
+															# y : [뽑힌 원소 각각 행 어디인지]
+															# x : [뽑힌 원소 각각 열 어디인지] - (y,x) 둘이 이어서 위치 찾기
+
+	count = []
+	for i in range(len(y)):
+		tmp = 0
+		for j in range(y[i], y[i] + blocksize + 1):
+			for k in range(x[i], x[i] + blocksize + 1):
+				if (texture[j, k] >= 0.3).all():
+					tmp += 1
+		count.append(tmp)
+
+	if (mask[:blocksize, (blkIdx):(blkIdx + blocksize)]==1).any():
+		c = count.index(max(count))
+	else:
+		c = np.random.randint(len(y))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
+
+	y, x = y[c], x[c]  # 허용오차 안의 해당 에러 중 랜덤하게 뽑음
+
+	return texture[y:y+blocksize, x:x+blocksize]	# 텍스쳐에서 해당 블록 return
+
+
+# tan 추가 합성
+def t_findPatchBoth(refBlockLeft, refBlockTop, texture, blocksize, overlap, tolerance, mask, blkIndexI, blkIndexJ):
+	'''
+	Find best horizontal and vertical match from the texture
+	사용: findPatchBoth(refBlockLeft, refBlockTop, image, blocksize, overlap, tolerance)
+	'''
+	H, W = texture.shape[:2]	# 튜플 압축 풀기 -> 해당 texture 의 rows, columns  값 추출
+								# openCV 경우 -> (rows, columns, channels) 튜플 보유
+	errMat = np.zeros((H-blocksize, W-blocksize)) + inf	# np.zeros : 0으로 채워진 array 생성 / [[W-blocksize 만큼]*H-blocksize만큼] 0으로된 2차원 배열 생성
+	for i, j in product(range(H-blocksize), range(W-blocksize)):	# product : 중복 순열 , 데이터를 뽑아 일렬로 나열하는 모든 경우의 수 / range : 0~해당 값까지
+																	# [0,1,2, ... ,H-blocksize] [0,1,2, ... , W-blocksize] => (0,0),(0,1)..(0,W-blocksize),(1,0),...,(H-blocksize,W-blocksize)
+		rmsVal = ((texture[i:i+overlap, j:j+blocksize] - refBlockTop[-overlap:, :])**2).mean()	# (위의 이웃 블록의 오버랩 부분 - 각 블록의 위쪽 오버랩 부분) 제곱 의 평균
+		rmsVal = rmsVal + ((texture[i:i+blocksize, j:j+overlap] - refBlockLeft[:, -overlap:])**2).mean()	# (왼쪽의 이웃 블록의 오버랩 부분 - 각 블록의 오른쪽 오버랩 부분) 제곱 의 평균
+		if rmsVal > 0:
+			errMat[i, j] = rmsVal	# 텍스쳐 크기에서 블록사이즈만큼 한줄 작아진 배열에 대입
+
+	minVal = np.min(errMat)	# 에러범위 값 중 가장 작은 것
+	y, x = np.where(errMat < (1.0 + tolerance)*(minVal))	# np.where: 조건에 맞는 위치 인덱스 찾기 / 해당 허용오차보다 작은 E고름
+															# y : [뽑힌 원소 각각 행 어디인지]
+															# x : [뽑힌 원소 각각 열 어디인지] - (y,x) 둘이 이어서 위치 찾기
+
+	count = []
+	for i in range(len(y)):
+		tmp = 0
+		for j in range(y[i], y[i] + blocksize + 1):
+			for k in range(x[i], x[i] + blocksize + 1):
+				if (texture[j, k] >= 0.5).all():
+					tmp += 1
+		count.append(tmp)
+
+	if (mask[(blkIndexI):(blkIndexI + blocksize), (blkIndexJ):(blkIndexJ + blocksize)]==1).any():
+		c = count.index(max(count))
+	else:
+		c = np.random.randint(len(y))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
+
+	y, x = y[c], x[c]  # 허용오차 안의 해당 에러중 랜덤하게 뽑음
+
+	return texture[y:y+blocksize, x:x+blocksize]	# 텍스쳐에서 해당 블록 return
+
+
+# tan 추가 합성
+def t_findPatchVertical(refBlock, texture, blocksize, overlap, tolerance, mask, blkIdx):
+	'''
+	Find best vertical match from the texture
+	사용: findPatchVertical(refBlock, image, blocksize, overlap, tolerance)
+	'''
+	H, W = texture.shape[:2]	# 튜플 압축 풀기 -> 해당 texture 의 rows, columns  값 추출
+								# openCV 경우 -> (rows, columns, channels) 튜플 보유
+	errMat = np.zeros((H-blocksize, W-blocksize)) + inf	# np.zeros : 0으로 채워진 array 생성 / [[W-blocksize 만큼]*H-blocksize만큼] 0으로된 2차원 배열 생성
+	for i, j in product(range(H-blocksize), range(W-blocksize)):	# product : 중복 순열 , 데이터를 뽑아 일렬로 나열하는 모든 경우의 수 / range : 0~해당 값까지
+																	# [0,1,2, ... ,H-blocksize] [0,1,2, ... , W-blocksize] => (0,0),(0,1)..(0,W-blocksize),(1,0),...,(H-blocksize,W-blocksize)
+		rmsVal = ((texture[i:i+overlap, j:j+blocksize] - refBlock[-overlap:, :])**2).mean()	# (이웃 블록의 오버랩 부분 - 각 블록의 오버랩 부분) 제곱 의 평균
+		if rmsVal > 0:
+			errMat[i, j] = rmsVal	# 텍스쳐 크기에서 블록사이즈만큼 한줄 작아진 배열에 대입
+
+	minVal = np.min(errMat)	# 에러범위 값 중 가장 작은 것
+	y, x = np.where(errMat < (1.0 + tolerance)*(minVal))	# np.where: 조건에 맞는 위치 인덱스 찾기 / 해당 허용오차보다 작은 E고름
+															# y : [뽑힌 원소 각각 행 어디인지]
+															# x : [뽑힌 원소 각각 열 어디인지] - (y,x) 둘이 이어서 위치 찾기
+
+	count = []
+	for i in range(len(y)):
+		tmp = 0
+		for j in range(y[i], y[i] + blocksize + 1):
+			for k in range(x[i], x[i] + blocksize + 1):
+				if (texture[j, k] >= 0.5).all():
+					tmp += 1
+		count.append(tmp)
+
+	if (mask[(blkIdx):(blkIdx + blocksize), :blocksize]==1).any():
+		c = count.index(max(count))
+	else:
+		c = count.index(min(count))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
+
+	y, x = y[c], x[c]  # 허용오차 안의 해당 에러중 랜덤하게 뽑음
+
+	return texture[y:y+blocksize, x:x+blocksize]	# 텍스쳐에서 해당 블록 return
+
+############################
+
+
+# original
 def getMinCutPatchHorizontal(block1, block2, blocksize, overlap):
 	'''
 	Get the min cut patch done horizontally
@@ -235,7 +356,7 @@ def getMinCutPatchHorizontal(block1, block2, blocksize, overlap):
 	# resBlock = block1*mask + block2*(1-mask)
 	return resBlock
 
-
+# original
 def getMinCutPatchVertical(block1, block2, blocksize, overlap):	# horizontal 에서 인자 블록만 반시계 90도 돌려서 같은 계산 행함
 	'''
 	Get the min cut patch done vertically
@@ -347,7 +468,7 @@ def getMinCutPatchBoth(refBlockLeft, refBlockTop, patchBlock, blocksize, overlap
 
 
 
-
+# original
 def generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	# main.py에서 사용되는 메인. tolerance : 허용요차
 	# 사용: generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
 	# ceil() : 소수점 자리의 숫자를 무조건 올리는 함수
@@ -359,24 +480,8 @@ def generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	# main
 	# Starting index and block
 	H, W = image.shape[:2]
 
-	while True:
-		randH = np.random.randint(H - blocksize)	# 블록사이즈 한줄 뺀 값에서 랜덤한 값
-		randW = np.random.randint(W - blocksize)	# 블록사이즈 한줄 뺀 값에서 랜덤한 값
-
-		count_black=0
-		a=0
-		for i in range(randH,randH + blocksize+1):
-			for j in range(randW,randW + blocksize+1):
-				a+=1
-				if (image[i,j]==[0,0,0]).all():
-					count_black += 1
-					print("^^")
-		print("block:{}, a:{}".format(count_black,a))
-		if count_black<(blocksize*blocksize*(1/2)):
-			break
-
-	plt.imshow(image[randH:randH+blocksize, randW:randW+blocksize])  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-	plt.show()
+	randH = np.random.randint(H - blocksize)  # 블록사이즈 한줄 뺀 값에서 랜덤한 값
+	randW = np.random.randint(W - blocksize)  # 블록사이즈 한줄 뺀 값에서 랜덤한 값
 
 	startBlock = image[randH:randH+blocksize, randW:randW+blocksize]	# 랜덤한 위치에서 시작하는 블록 사이즈만큼 잘라서 가져옴
 	textureMap[:blocksize, :blocksize, :] = startBlock	# 0으로 초기화된 맵에서 첫번째 블록에 랜덤하게 가져온 블록 대입함
@@ -435,7 +540,119 @@ def generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	# main
 
 	return textureMap
 
+#추가####################
+# foam data 에 대한 합성
+def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	# main.py에서 사용되는 메인. tolerance : 허용요차
+	# 사용: generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
+	# ceil() : 소수점 자리의 숫자를 무조건 올리는 함수
+	nH = int(ceil((outH - blocksize)*1.0/(blocksize - overlap)))	# 최종 이미지 크기에 오버랩 부분을 제외한 실제 블록들이 몇개 들어가는가?
+	nW = int(ceil((outW - blocksize)*1.0/(blocksize - overlap)))	# 최종 이미지 크기에 오버랩 부분을 제외한 실제 블록들이 몇개 들어가는가?
+
+	textureMap = np.zeros(((blocksize + nH*(blocksize - overlap)), (blocksize + nW*(blocksize - overlap)), image.shape[2]))
+	# [(H기준 : nH(들어가는 블록개수) * (오버랩 뺀 블록실제사이즈) + 마지막에 오버랩 안되므로 블록 하나 더 사이즈) , (W기준 동일) , 색상] => 0으로 초기화
+	# Starting index and block
+	H, W = image.shape[:2]
+
+	# 첫 블록 유의미하게 랜덤값 #################
+	while True:
+		randH = np.random.randint(H - blocksize)	# 블록사이즈 한줄 뺀 값에서 랜덤한 값
+		randW = np.random.randint(W - blocksize)	# 블록사이즈 한줄 뺀 값에서 랜덤한 값
+
+		count_black=0
+		a=0
+		for i in range(randH,randH + blocksize+1):
+			for j in range(randW,randW + blocksize+1):
+				a+=1
+				if (image[i,j]==[0,0,0]).all():
+					count_black += 1
+		if count_black<(blocksize*blocksize*(1/2)):
+			break
+	###########################
+
+	startBlock = image[randH:randH+blocksize, randW:randW+blocksize]	# 랜덤한 위치에서 시작하는 블록 사이즈만큼 잘라서 가져옴
+	textureMap[:blocksize, :blocksize, :] = startBlock	# 0으로 초기화된 맵에서 첫번째 블록에 랜덤하게 가져온 블록 대입함
+
+	# tan 직선에 대한 mask ############
+	a, b = textureMap.shape[:2]
+	c, d = H//2, W//2
+	print("textruemap h: {}, w: {}".format(a, b))
+	tan_mask = np.zeros((a,b))
+
+	tmpj = 0
+	for i in range(a):
+		t = 0
+
+		for j in range(b):
+			tan_range = a-(math.trunc(math.trunc(math.tan(45))*(j-c))+d)-1
+			if tan_range-90<=i and i<=tan_range+90:
+				tan_mask[i,j] = 1
+				tmpj = j
+				t+=1
+		if t==0:
+			tan_mask[i,tmpj] = 1
+
+	################################
+
+	# Fill the first row : 행(아래 위)
+	for i, blkIdx in enumerate(range((blocksize-overlap), textureMap.shape[1]-overlap, (blocksize-overlap))):	# enumerate() : 인덱스와 원소 차례로 반환
+		# 오버랩 부분 제외 블록 부분부터 ~ 오버랩 제외 열들까지 , 오버랩 제외한 블록사이즈만큼 옆으로 이동 (오른 -> 왼)
+
+		# Find horizontal error for this block
+		# Calculate min, find index having tolerance
+		# Choose one randomly among them
+		# blkIdx = block index to put in
+		# blkIdx = 블록에서 오버랩 되는 부분 시작점 인덱스
+		refBlock = textureMap[:blocksize, (blkIdx-blocksize+overlap):(blkIdx+overlap)]	#texturemap 의 한줄제외 모든 행에 대하여 열단위로 블록 한 칸만큼 계속 이동하면서 대입
+		patchBlock = t_findPatchHorizontal(refBlock, image, blocksize, overlap, tolerance, tan_mask, blkIdx)	# 미리 만든 패치 찾는 함수
+		minCutPatch = getMinCutPatchHorizontal(refBlock, patchBlock, blocksize, overlap)	# 미리 만든 최소 경로 찾는 함수
+		textureMap[:blocksize, (blkIdx):(blkIdx+blocksize)] = minCutPatch	# 오버랩부분 경계선 최소경로로 자름
+	print("{} out of {} rows complete...".format(1, nH+1))
+
+
+	### Fill the first column 열 (오른 왼쪽)
+	for i, blkIdx in enumerate(range((blocksize-overlap), textureMap.shape[0]-overlap, (blocksize-overlap))):	# # enumerate() : 인덱스와 원소 차례로 반환
+		# 오버랩 부분 제외 블록 부분부터 ~ 오버랩 제외 행들까지 , 오버랩 제외한 블록사이즈만큼 옆으로 이동 (위 -> 아래)
+
+		# Find vertical error for this block
+		# Calculate min, find index having tolerance
+		# Choose one randomly among them
+		# blkIdx = block index to put in
+		# blkIdx = 블록에서 오버랩 되는 부분 시작점 인덱스
+		refBlock = textureMap[(blkIdx-blocksize+overlap):(blkIdx+overlap), :blocksize]	#texturemap 의 한줄제외 모든 열에 대하여 행단위로 블록 한 칸만큼 계속 이동하면서 대입
+		patchBlock = t_findPatchVertical(refBlock, image, blocksize, overlap, tolerance, tan_mask, blkIdx)	# 미리 만든 패치 찾는 함수
+		minCutPatch = getMinCutPatchVertical(refBlock, patchBlock, blocksize, overlap)	# 미리 만든 최소 경로 찾는 함수
+		textureMap[(blkIdx):(blkIdx+blocksize), :blocksize] = minCutPatch	# 오버랩부분 경계선 최소경로로 자름
+
+	### Fill in the other rows and columns
+	for i in range(1, nH+1):
+		for j in range(1, nW+1):
+			# Choose the starting index for the texture placement
+			blkIndexI = i*(blocksize-overlap)
+			blkIndexJ = j*(blocksize-overlap)
+			# Find the left and top block, and the min errors independently
+			refBlockLeft = textureMap[(blkIndexI):(blkIndexI+blocksize), (blkIndexJ-blocksize+overlap):(blkIndexJ+overlap)]
+			refBlockTop  = textureMap[(blkIndexI-blocksize+overlap):(blkIndexI+overlap), (blkIndexJ):(blkIndexJ+blocksize)]
+
+			patchBlock = t_findPatchBoth(refBlockLeft, refBlockTop, image, blocksize, overlap, tolerance, tan_mask, blkIndexI, blkIndexJ)
+			minCutPatch = getMinCutPatchBoth(refBlockLeft, refBlockTop, patchBlock, blocksize, overlap)
+
+			textureMap[(blkIndexI):(blkIndexI+blocksize), (blkIndexJ):(blkIndexJ+blocksize)] = minCutPatch
+
+			# refBlockLeft = 0.5
+			# textureMap[(blkIndexI):(blkIndexI+blocksize), (blkIndexJ-blocksize+overlap):(blkIndexJ+overlap)] = refBlockLeft
+			# textureMap[(blkIndexI-blocksize+overlap):(blkIndexI+overlap), (blkIndexJ):(blkIndexJ+blocksize)] = [0.5, 0.6, 0.7]
+			# break
+		print("{} out of {} rows complete...".format(i+1, nH+1))
+		# break
+
+	plt.imshow(textureMap)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+	plt.show()
+
+	return textureMap
+#####################
+
 #추가###################
+# 8회전 합성 부분
 def r_generateTextureMap(image, blocksize, overlap, y, x, tolerance, mask):	# 회전이미지에서 검은부분 합성으로 채우기
 	# 사용: generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
 	# ceil() : 소수점 자리의 숫자를 무조건 올리는 함수
