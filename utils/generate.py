@@ -288,11 +288,15 @@ def t_findPatchVertical(refBlock, texture, blocksize, overlap, tolerance, mask, 
 
 	if (mask[(blkIdx):(blkIdx + blocksize), :blocksize]==1).any():
 		c = count.index(max(count))
+		print("11")
 	else:
 		c = count.index(min(count))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
+		print("22")
 
 	y, x = y[c], x[c]  # 허용오차 안의 해당 에러중 랜덤하게 뽑음
 
+	# plt.imshow(texture[y:y+blocksize, x:x+blocksize])  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+	# plt.show()
 	return texture[y:y+blocksize, x:x+blocksize]	# 텍스쳐에서 해당 블록 return
 
 ############################
@@ -577,20 +581,42 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 	c, d = H//2, W//2
 	print("textruemap h: {}, w: {}".format(a, b))
 	tan_mask = np.zeros((a,b))
+	seta = math.radians(30)
+	if seta>90:
+		seta = (seta % 90)
+		tan_seta = -math.tan(seta)
+	elif seta<=90:
+		tan_seta = math.tan(seta)
+	else:
+		tan_seta=0
+
+	flag1 = 0
+	flagi = 0
+	flagj = 0
 
 	tmpj = 0
 	for i in range(a):
 		t = 0
-
 		for j in range(b):
-			tan_range = a-(math.trunc(math.trunc(math.tan(45))*(j-c))+d)-1
-			if tan_range-90<=i and i<=tan_range+90:
+			tan_range = a - (math.ceil(math.ceil(tan_seta) * (j - c)) + d)
+			if tan_range-30<=i and i<=tan_range+30:
 				tan_mask[i,j] = 1
 				tmpj = j
 				t+=1
+				textureMap[i,j]=(255,0,0)
+
+				if flag1 == 0:
+					flag1 = 1
+					flagi = i
+					flagj = j
 		if t==0:
 			tan_mask[i,tmpj] = 1
+			textureMap[i, tmpj] = (255, 0, 0)
 
+	textureMap[flagi:flagi+blocksize, flagj:flagj+blocksize, :] = startBlock  # 0으로 초기화된 맵에서 첫번째 블록에 랜덤하게 가져온 블록 대입함
+
+	plt.imshow(textureMap)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+	plt.show()
 	################################
 
 	# Fill the first row : 행(아래 위)
