@@ -210,7 +210,7 @@ def t_findPatchHorizontal(refBlock, texture, blocksize, overlap, tolerance, mask
 	if (mask[:blocksize, (blkIdx):(blkIdx + blocksize)]==1).any():
 		c = count.index(max(count))
 	else:
-		c = np.random.randint(len(y))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
+		c = count.index(min(count))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
 
 	y, x = y[c], x[c]  # 허용오차 안의 해당 에러 중 랜덤하게 뽑음
 
@@ -250,7 +250,7 @@ def t_findPatchBoth(refBlockLeft, refBlockTop, texture, blocksize, overlap, tole
 	if (mask[(blkIndexI):(blkIndexI + blocksize), (blkIndexJ):(blkIndexJ + blocksize)]==1).any():
 		c = count.index(max(count))
 	else:
-		c = np.random.randint(len(y))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
+		c = count.index(min(count))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
 
 	y, x = y[c], x[c]  # 허용오차 안의 해당 에러중 랜덤하게 뽑음
 
