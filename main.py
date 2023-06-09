@@ -7,6 +7,7 @@ from utils.preprocess import *	# utils 파일에 preprocess.py 의 모든 내용
 from utils.generate import *	# utils 파일에 generate.py 의 모든 내용 가져오기
 from math import ceil	# math 함수 -> ceil : 올림 (int형)
 
+
 ## Get parser arguments	(호출당시 인자값 -> 동작)
 parser = argparse.ArgumentParser()	# ArgumentParser 객체
 
@@ -58,6 +59,7 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 	# 	image = cv2.resize(image, (H, H))
 
 	for i in range(args.num_outputs):	# 결과 개수 만큼 반복
+
 		# 수정
 		#textureMap = r_generateTextureMap(image, block_size, overlap, H, W, args.tolerance)
 		textureMap = multi_RotateExImg(image, block_size, overlap, outH, outW, args.tolerance)

@@ -1571,7 +1571,7 @@ def multi_RotateExImg(image, blocksize, overlap, outH, outW, tolerance):  # 방�
 	images = rImgs
 
 	## mimwrite 대신 mimsave로도 가능
-	imageio.mimwrite(os.path.join(os.getcwd(), 'result.gif'),  ## 저장 경로
+	imageio.mimwrite(os.path.join(os.getcwd(), 'result_4090.gif'),  ## 저장 경로
 					 images,  ## 이미지 리스트
 					 format='gif',  ## 저장 포맷
 					 **gif_config  ## 부가 요소
