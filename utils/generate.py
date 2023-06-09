@@ -1436,7 +1436,7 @@ def multi_RotateExImg(image, blocksize, overlap, outH, outW, tolerance):  # ë°©í
 
 	rImgs = []
 
-	for i in range(0, 360, 5):
+	for i in range(0, 6, 5):
 		imax = 360
 		r_seta = i
 
