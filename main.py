@@ -62,7 +62,6 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 		#textureMap = r_generateTextureMap(image, block_size, overlap, H, W, args.tolerance)
 		textureMap = multi_RotateExImg(image, block_size, overlap, outH, outW, args.tolerance)
 
-		# print("blocksize:{} , overlap:{}".format(block_size,overlap))
 		# textureMaps = Pre_RotateExImg(image, image, block_size, overlap, outH, outW, args.tolerance)
 		# textureMaps = Pre_AddRotateIndex(textureMaps)
 		# textureMaps = Pre_FindNeighbor(textureMaps)

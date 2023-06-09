@@ -1228,7 +1228,7 @@ def Pre_AddRotateIndex(img8):
 
 		addArray = np.full((h,w,1), i)
 		new = np.concatenate([img, addArray], axis=2)
-
+	print("new : {}".format(new))
 	return new
 
 def Pre_FindNeighbor(img8,ref,size):
@@ -1461,10 +1461,10 @@ def multi_RotateExImg(image, blocksize, overlap, outH, outW, tolerance):  # 방�
 		print("1:{} , 2: {}, 3:{}".format(line_1, line_2, line_3))
 		print("h: {}, W: {}".format(h,w))
 
-		rangeLine = [line_1,line_2,line_3]
-		longline=0
+		rangeLine = [line_1,line_3]
+		longline=w+100
 		for line in rangeLine:
-			if longline<=line:
+			if longline>=line:
 				longline = line
 		print("liongline:{}".format(longline))
 
@@ -1500,9 +1500,10 @@ def multi_RotateExImg(image, blocksize, overlap, outH, outW, tolerance):  # 방�
 				fill_black_img[y, x] = [1, 0, 0]
 			tmp += 1
 		pre_img = cv2.addWeighted(rotated_seta, 0.5, fill_black_img, 0.5, 0)
-		# rImgs.append(pre_img)
+		rImgs.append(pre_img)
 
-		# plt.imshow(pre_img)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+		#rImgs.append(fill_black_img)
+		# plt.imshow(fill_black_img)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
 		# plt.show()
 		#############################
 
@@ -1570,7 +1571,7 @@ def multi_RotateExImg(image, blocksize, overlap, outH, outW, tolerance):  # 방�
 	images = rImgs
 
 	## mimwrite 대신 mimsave로도 가능
-	imageio.mimwrite(os.path.join("E:\Project_Ch00cy\CGVR\Image_Quilting_for_Texture_Synthesis", 'result.gif'),  ## 저장 경로
+	imageio.mimwrite(os.path.join(os.getcwd(), 'result.gif'),  ## 저장 경로
 					 images,  ## 이미지 리스트
 					 format='gif',  ## 저장 포맷
 					 **gif_config  ## 부가 요소
