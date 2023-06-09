@@ -1206,16 +1206,16 @@ def Pre_RotateExImg(image, exImg, blocksize, overlap, outH, outW, tolerance):  #
 
 		img8.append(r_texture_black)
 
-		# Save
-		pre_img = (255 * r_texture_black).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
-		pre_img = cv2.cvtColor(pre_img, cv2.COLOR_RGB2BGR)
-
-		cv2.imwrite("8img_" + str(i) + ".png", pre_img)
-
-		pre_img1 = (255 * r_texture).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
-		pre_img1 = cv2.cvtColor(pre_img1, cv2.COLOR_RGB2BGR)
-
-		cv2.imwrite("10img_" + str(i) + ".png", pre_img1)
+		# # Save
+		# pre_img = (255 * r_texture_black).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
+		# pre_img = cv2.cvtColor(pre_img, cv2.COLOR_RGB2BGR)
+		#
+		# cv2.imwrite("8img_" + str(i) + ".png", pre_img)
+		#
+		# pre_img1 = (255 * r_texture).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
+		# pre_img1 = cv2.cvtColor(pre_img1, cv2.COLOR_RGB2BGR)
+		#
+		# cv2.imwrite("10img_" + str(i) + ".png", pre_img1)
 
 	return img8
 
@@ -1544,8 +1544,8 @@ def multi_RotateExImg(image, blocksize, overlap, outH, outW, tolerance):  # 방�
 		r_texture_black1 = r_texture_black[:h, :w, :]	# r_generateTextureMap () 함수 시 블록 사이즈에 나눠떨어지게 크기가 생성되므로 h,w 라도 좀 더 크게 잡힌다. 따라서 크기가 달라 아래에서 연산이 안되므로 조절해준다.
 		r_texture = rotated_seta * mask_black + r_texture_black1 * (1-mask_black)	# 기존 이미지 + 방향성 합성 이미지 검은부분용
 
-		plt.imshow(r_texture_black)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-		plt.show()
+		# plt.imshow(r_texture_black)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+		# plt.show()
 
 		rImgs.append(r_texture_black)
 
