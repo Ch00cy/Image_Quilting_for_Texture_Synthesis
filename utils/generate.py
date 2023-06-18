@@ -349,8 +349,6 @@ def t_findPatchHorizontal(refBlock, texture, blocksize, overlap, tolerance, mask
 		if rmsVal > 0:
 			errMat[i, j] = rmsVal	# 텍스쳐 크기에서 블록사이즈만큼 한줄 작아진 배열에 대입
 
-	print("err[]: {}".format(errMat))
-
 	#minVal = np.min(errMat)  # 에러범위 값 중 가장 작은 것
 	y = 0
 	x = 0
@@ -359,10 +357,8 @@ def t_findPatchHorizontal(refBlock, texture, blocksize, overlap, tolerance, mask
 
 		minVal = 1000
 		c = 0
-		print(len(where_white))
 		for ii in range(len(where_white)):
 			if errMat[where_white[ii][0], where_white[ii][1]] < minVal:
-				print("block err:{}".format(errMat[where_white[ii][0], where_white[ii][1]]))
 				minVal = errMat[where_white[ii][0], where_white[ii][1]]
 				c = ii
 
@@ -761,7 +757,6 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 	# tan 직선에 대한 mask ############
 	a, b = textureMap.shape[:2]	# a = h, b = w
 	c, d = H//2, W//2
-	print("textruemap h: {}, w: {}".format(a, b))
 	tan_mask = np.zeros((a,b))
 
 	angle = 130	# 주어진 각도 - 회전된 직선 영역을 위하여
@@ -1055,7 +1050,9 @@ def r_generateTextureMap(image, blocksize, overlap, y, x, tolerance, mask):	# �
 		print("{} out of {} rows complete...".format(i + 1, nH + 1))
 	# break
 
+	print("()()()generate1: {}".format(textureMap.shape))
 	np.resize(textureMap,(y,x))
+	print("()()()generate2: {}".format(textureMap.shape))
 	return textureMap
 
 #######################
@@ -1136,9 +1133,9 @@ def Pre_RotateExImg(image, blocksize, overlap, outH, outW, tolerance):  # 방향
 		line_1 = ceil(t * sin_seta)	# 넉넉하게 라인 길이를 잡아줘야 하므로 올림으로 하였다.
 		line_2 = ceil(t)
 		line_3 = ceil(t * cos_seta)
-		print("sin:{} , cos: {}, t:{}".format(sin_seta,cos_seta,t))
-		print("1:{} , 2: {}, 3:{}".format(line_1, line_2, line_3))
-		print("h: {}, W: {}".format(h,w))
+		# print("sin:{} , cos: {}, t:{}".format(sin_seta,cos_seta,t))
+		# print("1:{} , 2: {}, 3:{}".format(line_1, line_2, line_3))
+		# print("h: {}, W: {}".format(h,w))
 
 		# #기존 확인용###############
 		# fill_black_img = rotated_seta.copy()
@@ -1201,8 +1198,9 @@ def Pre_RotateExImg(image, blocksize, overlap, outH, outW, tolerance):  # 방향
 			tmp += 1
 
 		# rotation -> 검은 삼각형 부분 => 합성 #########
+		print("rotated_seta:{}".format(rotated_seta.shape))
 		r_texture_black = r_generateTextureMap(rotated_seta, blocksize, overlap, h, w, tolerance, mask_black)	# 방향성 고려해서 새로 합성한 후보이미지
-
+		print("r_texture_black:{}".format(r_texture_black.shape))
 		# 어차피 회전 예제 이미지의 방향값을 가져오는 것이 목적이므로 더 자연스러운 새로만든 텍스쳐를 사용한다.
 		# r_texture_black1 = r_texture_black[:h, :w, :]	# r_generateTextureMap () 함수 시 블록 사이즈에 나눠떨어지게 크기가 생성되므로 h,w 라도 좀 더 크게 잡힌다. 따라서 크기가 달라 아래에서 연산이 안되므로 조절해준다.
 		# r_texture = rotated_seta * mask_black + r_texture_black1 * (1-mask_black)	# 기존 이미지 + 방향성 합성 이미지 검은부분용
@@ -1233,18 +1231,13 @@ def Pre_AddRotateIndex(img8):
 		w = img.shape[1]
 
 		addArray = np.full((h,w,1), i)
-		if i==1:
-			new = np.concatenate([img, addArray], axis=2)
-	print("new : {}".format(new))
+		new = np.concatenate([img, addArray], axis=2)
 	return new
 
 def Pre_FindNeighbor(img8,ref,size):
-	print("함수 안+++++")
 	NEi = ref
 	half = int(size//2)
-	print("half={}".format(half))
 	for i in range(len(img8)):
-		print("111")
 		img = img8[i]
 		h = img.shape[0]
 		w = img.shape[1]
@@ -1253,23 +1246,12 @@ def Pre_FindNeighbor(img8,ref,size):
 		tmp_j=0
 
 		for y in range(half-1,h-half+1):
-			print("222")
-			print("imageshape:{}".format(img.shape))
-			print("{} w:{}".format(h,w))
-			print("{} ~ {}".format(half-1, w-half+1))
 			for x in range(half-1,w-half+1):
-				print("333")
 				# 예외처리 - 안해주면 통째로 [] 로 처리돼서 error 계산시 NaN 으로 나옴 (숫자 아니라는 뜻)
 				NEj = img[y-(half-1):y+half+1,x-(half-1):x+half+1]
 
-
-				print("{},{} 에서의 ".format(y, x))
-				print("i:{} , j:{}".format(NEi.shape, NEj.shape))
-
 				err = ((NEj[:,:] - NEi[:,:]) ** 2).mean()	# error 를 어떻게 구하는지에 대한 언급이 없어서 기존 error 구하는 공식 가져옴
-				print("err: {}".format(err))
 				if err<tmp_err:
-					print("eee")
 					tmp_err = err
 					tmp_p = NEj
 					tmp_j = i
@@ -1281,7 +1263,8 @@ def fin_findPatchHorizontal(refBlock, texture, blocksize, overlap, tolerance, im
 	Find best horizontal match from the texture
 	사용: findPatchHorizontal(refBlock, image, blocksize, overlap, tolerance)
 	'''
-	print("textureshape: {}, img: {}".format(texture.shape, img8[1].shape))
+	print("fin_findpatchhorizontal start")
+	print(">>>textureshape: {}, img: {}".format(texture.shape, img8[1].shape))
 	H, W = texture.shape[:2]	# 튜플 압축 풀기 -> 해당 texture 의 rows, columns  값 추출
 	rIndex=[]
 	errMat = []
@@ -1293,7 +1276,6 @@ def fin_findPatchHorizontal(refBlock, texture, blocksize, overlap, tolerance, im
 				errMat.append([i,j,r,rmsVal]) # 텍스쳐 크기에서 블록사이즈만큼 한줄 작아진 배열에 대입
 				rIndex.append(r)
 
-	print("시작+++++")
 
 	minVal = np.min(errMat[3])	# 에러범위 값 중 가장 작은 것
 	errIndex = np.where((errMat[3] < (1.0 + tolerance)*(minVal)),errMat)	# np.where: 조건에 맞는 위치 인덱스 찾기 / 해당 허용오차보다 작은 E 고름
@@ -1313,6 +1295,7 @@ def fin_findPatchBoth(refBlockLeft, refBlockTop, texture, blocksize, overlap, to
 	Find best horizontal and vertical match from the texture
 	사용: findPatchBoth(refBlockLeft, refBlockTop, image, blocksize, overlap, tolerance)
 	'''
+	print("fin_findpatchboth start")
 	H, W = texture.shape[:2]	# 튜플 압축 풀기 -> 해당 texture 의 rows, columns  값 추출
 								# openCV 경우 -> (rows, columns, channels) 튜플 보유
 	errMat = np.zeros((H-blocksize, W-blocksize)) + inf	# np.zeros : 0으로 채워진 array 생성 / [[W-blocksize 만큼]*H-blocksize만큼] 0으로된 2차원 배열 생성
@@ -1338,6 +1321,7 @@ def fin_findPatchVertical(refBlock, texture, blocksize, overlap, tolerance, img8
 	Find best vertical match from the texture
 	사용: findPatchVertical(refBlock, image, blocksize, overlap, tolerance)
 	'''
+	print("fin_findpatchvertical start")
 	H, W = texture.shape[:2]	# 튜플 압축 풀기 -> 해당 texture 의 rows, columns  값 추출
 								# openCV 경우 -> (rows, columns, channels) 튜플 보유
 	errMat = np.zeros((H-blocksize, W-blocksize)) + inf	# np.zeros : 0으로 채워진 array 생성 / [[W-blocksize 만큼]*H-blocksize만큼] 0으로된 2차원 배열 생성
@@ -1366,6 +1350,7 @@ def fin_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	# 
 	# [(H기준 : nH(들어가는 블록개수) * (오버랩 뺀 블록실제사이즈) + 마지막에 오버랩 안되므로 블록 하나 더 사이즈) , (W기준 동일) , 색상] => 0으로 초기화
 	# Starting index and block
 	H, W = image.shape[:2]
+	print("H:{},W:{},texturemap:{},outH:{},outw:{}".format(H,W,textureMap.shape,outH,outW))
 	pre_img8 = Pre_RotateExImg(image, blocksize, overlap, outH, outW, tolerance)
 	#pre_img8 = Pre_AddRotateIndex(pre_img8)
 
@@ -1464,9 +1449,6 @@ def multi_RotateExImg(image, blocksize, overlap, outH, outW, tolerance):  # 방�
 		line_1 = ceil(a * cos_seta)	# 넉넉하게 라인 길이를 잡아줘야 하므로 올림으로 하였다.
 		line_2 = ceil(a)
 		line_3 = ceil(a * sin_seta)
-		print("sin:{} , cos: {}, x:{}".format(sin_seta,cos_seta,a))
-		print("1:{} , 2: {}, 3:{}".format(line_1, line_2, line_3))
-		print("h: {}, W: {}".format(h,w))
 
 
 		mask_black = np.ones((h, w, 3))
