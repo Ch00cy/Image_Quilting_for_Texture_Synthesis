@@ -49,7 +49,6 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 
 	# image = cv2.resize(image, (200, 200))
 	H, W = image.shape[:2]	# 이미지 Height, Width
-	outH, outW = int(scale*H), int(scale*W)	# 아웃풋 결과 : 이미지의 scale(4) 배로 키워줌
 
 	# 수정 - 추가부분
 	# 이미지 사이즈 w,h중 작은 것에 맞춰서 정사각형으로 크기조절
@@ -57,6 +56,8 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 		image = cv2.resize(image, (W, W))
 	else:
 		image = cv2.resize(image, (H, H))
+
+	outH, outW = int(scale * H), int(scale * W)  # 아웃풋 결과 : 이미지의 scale(4) 배로 키워줌
 
 	for i in range(args.num_outputs):	# 결과 개수 만큼 반복
 
@@ -75,19 +76,19 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 		# cv2.imwrite(args.output_file, textureMap)
 
 		# #textureMap = generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)	# generate.py -> generateTextureMap(image, blocksize, overlap, outH, outW, tolerance) 함수 실행
-		# if args.plot:	# plot 보여줄지 true 면 실행 (디폴트 1)
-		# 	plt.imshow(textureMap)	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-		# 	plt.show()	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+		if args.plot:	# plot 보여줄지 true 면 실행 (디폴트 1)
+			plt.imshow(textureMap)	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+			plt.show()	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
 
 
 
-		# #Save
-		# textureMap = (255*textureMap).astype(np.uint8)	# 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
-		# textureMap = cv2.cvtColor(textureMap, cv2.COLOR_RGB2BGR)
-		#
-		# if args.num_outputs == 1:
-		# 	cv2.imwrite("output.png", textureMap)
-		# 	print("Saved output to {}".format(args.output_file))
-		# else:
-		# 	cv2.imwrite(args.output_file.replace(".", "_{}.".format(i)), textureMap)
-		# 	print("Saved output to {}".format(args.output_file.replace(".", "_{}.".format(i))))
+		#Save
+		textureMap = (255*textureMap).astype(np.uint8)	# 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
+		textureMap = cv2.cvtColor(textureMap, cv2.COLOR_RGB2BGR)
+
+		if args.num_outputs == 1:
+			cv2.imwrite("output.png", textureMap)
+			print("Saved output to {}".format(args.output_file))
+		else:
+			cv2.imwrite(args.output_file.replace(".", "_{}.".format(i)), textureMap)
+			print("Saved output to {}".format(args.output_file.replace(".", "_{}.".format(i))))
