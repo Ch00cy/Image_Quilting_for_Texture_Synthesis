@@ -66,7 +66,7 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 
 		# 수정
 		#textureMap = r_generateTextureMap(image, block_size, overlap, H, W, args.tolerance)
-		textureMap = fin_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
+		# textureMap = fin_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
 
 		# textureMaps = Pre_RotateExImg(image, block_size, overlap, outH, outW, args.tolerance)
 		# textureMaps = Pre_AddRotateIndex(textureMaps)
@@ -80,15 +80,20 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 
 		textureMap1 = generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)	# generate.py -> generateTextureMap(image, blocksize, overlap, outH, outW, tolerance) 함수 실행
 
+		for i in range(3):
+			textureMap = fin_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
+			textureMap = (255 * textureMap).astype(np.uint8)
+			textureMap = cv2.cvtColor(textureMap, cv2.COLOR_RGB2BGR)
+			cv2.imwrite("Output8rotate_"+(i+1)+"_.png", textureMap)
 		# save test
-		plt.imshow(textureMap)	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-		plt.show()	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-		textureMap = (255 * textureMap).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
-		textureMap = cv2.cvtColor(textureMap, cv2.COLOR_RGB2BGR)
-		cv2.imwrite("Output8rotate.png", textureMap)
+		# plt.imshow(textureMap)	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+		# plt.show()	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+		# textureMap = (255 * textureMap).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
+		# textureMap = cv2.cvtColor(textureMap, cv2.COLOR_RGB2BGR)
+		# cv2.imwrite("Output8rotate.png", textureMap)
 
-		plt.imshow(textureMap1)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-		plt.show()  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+		# plt.imshow(textureMap1)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+		# plt.show()  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
 		textureMap1 = (255 * textureMap1).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
 		textureMap1 = cv2.cvtColor(textureMap1, cv2.COLOR_RGB2BGR)
 		cv2.imwrite("OutputOrigin.png", textureMap1)
