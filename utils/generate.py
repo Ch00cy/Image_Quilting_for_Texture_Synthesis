@@ -908,6 +908,7 @@ def r_findPatchHorizontal(refBlock, texture, blocksize, overlap, tolerance, mask
 															# y : [뽑힌 원소 각각 행 어디인지]
 															# x : [뽑힌 원소 각각 열 어디인지] - (y,x) 둘이 이어서 위치 찾기
 
+
 	while (True):
 		c = np.random.randint(len(y))	# random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
 		yy, xx = y[c], x[c]	# 허용오차 안의 해당 에러 중 랜덤하게 뽑음
@@ -943,6 +944,11 @@ def r_findPatchBoth(refBlockLeft, refBlockTop, texture, blocksize, overlap, tole
 		yy, xx = y[c], x[c]  # 허용오차 안의 해당 에러 중 랜덤하게 뽑음
 		if (mask[yy:yy + blocksize, xx:xx + blocksize] == 1).all():
 			break
+
+	# if len(y)<2:
+	# 	print("확인 y : {}".format(y))
+	# 	print("확인 x : {}".format(x))
+	# 	print("확인 c : {}".format(c))
 
 	return texture[yy:yy+blocksize, xx:xx+blocksize]	# 텍스쳐에서 해당 블록 return
 
@@ -1057,7 +1063,7 @@ def r_generateTextureMap(image, blocksize, overlap, y, x, tolerance, mask):	# �
 
 # 추가##################
 # 전처리 : 1. 예제 이미지의 전처리
-def Pre_RotateExImg(image, blocksize, overlap, outH, outW, tolerance):  # 방향성 더해주기 위한 내가만든 함수
+def Pre_RotateExImg(image, blocksize, overlap, tolerance):  # 방향성 더해주기 위한 내가만든 함수
 	print(">>Pre_roatateExImg")
 	# 사용: generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
 
@@ -1065,7 +1071,7 @@ def Pre_RotateExImg(image, blocksize, overlap, outH, outW, tolerance):  # 방향
 	# 이미지의 크기를 잡고 이미지의 중심을 계산합니다.
 	(h, w) = image.shape[:2]
 	(cX, cY) = (w // 2, h // 2)
-	is_toroidal = []
+	# is_toroidal = []
 
 	img8 = []
 
@@ -1073,11 +1079,11 @@ def Pre_RotateExImg(image, blocksize, overlap, outH, outW, tolerance):  # 방향
 		imax = 8
 		r_seta = i / imax * 360
 
-		# 90도 배수이면 toroidal = 1
-		if (r_seta % 90 == 0):
-			is_toroidal.append(1)
-		else:
-			is_toroidal.append(0)
+		# # 90도 배수이면 toroidal = 1
+		# if (r_seta % 90 == 0):
+		# 	is_toroidal.append(1)
+		# else:
+		# 	is_toroidal.append(0)
 
 		# 이미지의 중심을 중심으로 이미지를 r_seta도 회전합니다.
 		M = cv2.getRotationMatrix2D((cX, cY), r_seta, 1.0)	# cv2.getRotationMatrix2D(회전중심좌표(x,y 튜플), 회전각도, 스케일)
@@ -1194,7 +1200,7 @@ def Pre_RotateExImg(image, blocksize, overlap, outH, outW, tolerance):  # 방향
 			tmp += 1
 
 		# rotation -> 검은 삼각형 부분 => 합성 #########
-		r_texture_black = r_generateTextureMap(rotated_seta, blocksize, overlap, h, w, tolerance, mask_black)	# 방향성 고려해서 새로 합성한 후보이미지
+		# r_texture_black = r_generateTextureMap(rotated_seta, blocksize, overlap, h, w, tolerance, mask_black)	# 방향성 고려해서 새로 합성한 후보이미지
 
 		# 어차피 회전 예제 이미지의 방향값을 가져오는 것이 목적이므로 더 자연스러운 새로만든 텍스쳐를 사용한다.
 		# r_texture_black1 = r_texture_black[:h, :w, :]	# r_generateTextureMap () 함수 시 블록 사이즈에 나눠떨어지게 크기가 생성되므로 h,w 라도 좀 더 크게 잡힌다. 따라서 크기가 달라 아래에서 연산이 안되므로 조절해준다.
@@ -1203,7 +1209,8 @@ def Pre_RotateExImg(image, blocksize, overlap, outH, outW, tolerance):  # 방향
 		# plt.imshow(r_texture_black)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
 		# plt.show()
 
-		img8.append(r_texture_black)
+		# img8.append(r_texture_black)
+		img8.append([rotated_seta,mask_black])
 
 		# # Save
 		# pre_img = (255 * r_texture_black).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
@@ -1253,7 +1260,7 @@ def Pre_FindNeighbor(img8,ref,size):
 
 	return tmp_p
 
-def fin_findPatchHorizontal(refBlock, img8, blocksize, overlap, tolerance):	# tolerance : 허용오차
+def fin_findPatchHorizontal(refBlock, img8, blocksize, overlap, tolerance, mask):	# tolerance : 허용오차
 	'''
 	Find best horizontal match from the texture
 	사용: findPatchHorizontal(refBlock, image, blocksize, overlap, tolerance)
@@ -1264,26 +1271,36 @@ def fin_findPatchHorizontal(refBlock, img8, blocksize, overlap, tolerance):	# to
 	for i, j in product(range(H-blocksize), range(W-blocksize)):	# product : 중복 순열 , 데이터를 뽑아 일렬로 나열하는 모든 경우의 수 / range : 0~해당 값까지
 																	# openCV 경우 -> (rows, columns, channels) 튜플 보유,1,2, ... ,H-blocksize] [0,1,2, ... , W-blocksize] => (0,0),(0,1)..(0,W-blocksize),(1,0),...,(H-blocksize,W-blocksize)
 		for r in range(len(img8)):
-			rmsVal = ((img8[r][i:i+blocksize, j:j+overlap] - refBlock[:, -overlap:])**2).mean()	# (이웃 블록의 오버랩 부분 - 각 블록의 오버랩 부분) 제곱 의 평균
-			if rmsVal > 0:
-				errMat.append([i,j,r,rmsVal]) # 텍스쳐 크기에서 블록사이즈만큼 한줄 작아진 배열에 대입
+			if (mask[r][i:i + blocksize, j:j + blocksize] == 1).all():
+				rmsVal = ((img8[r][i:i+blocksize, j:j+overlap] - refBlock[:, -overlap:])**2).mean()	# (이웃 블록의 오버랩 부분 - 각 블록의 오버랩 부분) 제곱 의 평균
+				if rmsVal > 0:
+					errMat.append([i,j,r,rmsVal]) # 텍스쳐 크기에서 블록사이즈만큼 한줄 작아진 배열에 대입
 
-	errMat_2dLow = list(zip(*errMat))
-	minVal = np.min(errMat_2dLow[3])	# 에러범위 값 중 가장 작은 것
+	# errMat_2dLow = list(zip(*errMat))
+	# minVal = np.min(errMat_2dLow[3])	# 에러범위 값 중 가장 작은 것
+
+	errMat.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
 
 	errIndex = []
-	for i in range(len(errMat)):
-		if errMat[i][3] < (1.0 + tolerance) * (minVal):
-			errIndex.append(errMat[i])
+	errIndex.append(errMat[:5])
+	errIndex = sum(errIndex, [])
 
-	c = np.random.randint(len(errIndex))	# random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
-	y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
+	# errIndex = []
+	# for i in range(len(errMat)):
+	# 	if errMat[i][3] < (1.0 + tolerance) * (minVal):
+	# 		errIndex.append(errMat[i])
+
+	while (True):
+		c = np.random.randint(len(errIndex))	# random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
+		y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
+		if (mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
+			break
 
 	return img8[r][y:y+blocksize, x:x+blocksize]	# 텍스쳐에서 해당 블록 return
 
 
 
-def fin_findPatchBoth(refBlockLeft, refBlockTop, img8, blocksize, overlap, tolerance):
+def fin_findPatchBoth(refBlockLeft, refBlockTop, img8, blocksize, overlap, tolerance, mask):
 	'''
 	Find best horizontal and vertical match from the texture
 	사용: findPatchBoth(refBlockLeft, refBlockTop, image, blocksize, overlap, tolerance)
@@ -1295,27 +1312,37 @@ def fin_findPatchBoth(refBlockLeft, refBlockTop, img8, blocksize, overlap, toler
 	for i, j in product(range(H-blocksize), range(W-blocksize)):	# product : 중복 순열 , 데이터를 뽑아 일렬로 나열하는 모든 경우의 수 / range : 0~해당 값까지
 																	# [0,1,2, ... ,H-blocksize] [0,1,2, ... , W-blocksize] => (0,0),(0,1)..(0,W-blocksize),(1,0),...,(H-blocksize,W-blocksize)
 		for r in range(len(img8)):
-			rmsVal = ((img8[r][i:i+overlap, j:j+blocksize] - refBlockTop[-overlap:, :])**2).mean()	# (위의 이웃 블록의 오버랩 부분 - 각 블록의 위쪽 오버랩 부분) 제곱 의 평균
-			rmsVal = rmsVal + ((img8[r][i:i+blocksize, j:j+overlap] - refBlockLeft[:, -overlap:])**2).mean()	# (왼쪽의 이웃 블록의 오버랩 부분 - 각 블록의 오른쪽 오버랩 부분) 제곱 의 평균
-			if rmsVal > 0:
-				errMat.append([i,j,r,rmsVal])	# 텍스쳐 크기에서 블록사이즈만큼 한줄 작아진 배열에 대입
+			if (mask[r][i:i + blocksize, j:j + blocksize] == 1).all():
+				rmsVal = ((img8[r][i:i+overlap, j:j+blocksize] - refBlockTop[-overlap:, :])**2).mean()	# (위의 이웃 블록의 오버랩 부분 - 각 블록의 위쪽 오버랩 부분) 제곱 의 평균
+				rmsVal = rmsVal + ((img8[r][i:i+blocksize, j:j+overlap] - refBlockLeft[:, -overlap:])**2).mean()	# (왼쪽의 이웃 블록의 오버랩 부분 - 각 블록의 오른쪽 오버랩 부분) 제곱 의 평균
+				if rmsVal > 0:
+					errMat.append([i,j,r,rmsVal])	# 텍스쳐 크기에서 블록사이즈만큼 한줄 작아진 배열에 대입
 
-	errMat_2dLow = list(zip(*errMat))
-	minVal = np.min(errMat_2dLow[3])  # 에러범위 값 중 가장 작은 것
+	# errMat_2dLow = list(zip(*errMat))
+	# minVal = np.min(errMat_2dLow[3])  # 에러범위 값 중 가장 작은 것
+
+	errMat.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
 
 	errIndex = []
-	for i in range(len(errMat)):
-		if errMat[i][3] < (1.0 + tolerance) * (minVal):
-			errIndex.append(errMat[i])
+	errIndex.append(errMat[:5])
+	errIndex = sum(errIndex, [])
 
-	c = np.random.randint(len(errIndex))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
-	y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
+	# errIndex = []
+	# for i in range(len(errMat)):
+	# 	if errMat[i][3] < (1.0 + tolerance) * (minVal):
+	# 		errIndex.append(errMat[i])
+
+	while (True):
+		c = np.random.randint(len(errIndex))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
+		y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
+		if (mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
+			break
 
 	return img8[r][y:y+blocksize, x:x+blocksize]	# 텍스쳐에서 해당 블록 return
 
 
 
-def fin_findPatchVertical(refBlock, img8, blocksize, overlap, tolerance):
+def fin_findPatchVertical(refBlock, img8, blocksize, overlap, tolerance, mask):
 	'''
 	Find best vertical match from the texture
 	사용: findPatchVertical(refBlock, image, blocksize, overlap, tolerance)
@@ -1326,20 +1353,32 @@ def fin_findPatchVertical(refBlock, img8, blocksize, overlap, tolerance):
 	for i, j in product(range(H-blocksize), range(W-blocksize)):	# product : 중복 순열 , 데이터를 뽑아 일렬로 나열하는 모든 경우의 수 / range : 0~해당 값까지
 																	# [0,1,2, ... ,H-blocksize] [0,1,2, ... , W-blocksize] => (0,0),(0,1)..(0,W-blocksize),(1,0),...,(H-blocksize,W-blocksize)
 		for r in range(len(img8)):
-			rmsVal = ((img8[r][i:i+overlap, j:j+blocksize] - refBlock[-overlap:, :])**2).mean()	# (이웃 블록의 오버랩 부분 - 각 블록의 오버랩 부분) 제곱 의 평균
-			if rmsVal > 0:
-				errMat.append([i,j,r,rmsVal])
+			if (mask[r][i:i + blocksize, j:j + blocksize] == 1).all():
+				rmsVal = ((img8[r][i:i+overlap, j:j+blocksize] - refBlock[-overlap:, :])**2).mean()	# (이웃 블록의 오버랩 부분 - 각 블록의 오버랩 부분) 제곱 의 평균
+				if rmsVal > 0:
+					errMat.append([i,j,r,rmsVal])
 
-	errMat_2dLow = list(zip(*errMat))
-	minVal = np.min(errMat_2dLow[3])  # 에러범위 값 중 가장 작은 것
+	# errMat_2dLow = list(zip(*errMat))
+
+	# minVal = np.min(errMat_2dLow[3])  # 에러범위 값 중 가장 작은 것
+
+	errMat.sort(key=lambda x:x[3])	# err 작은것부터 오름차순 정렬
 
 	errIndex = []
-	for i in range(len(errMat)):
-		if errMat[i][3] < (1.0 + tolerance) * (minVal):
-			errIndex.append(errMat[i])
+	errIndex.append(errMat[:5])
+	errIndex = sum(errIndex, [])
+	# for i in range(len(errMat)):
+	# 	if errMat[i][3] < (1.0 + tolerance) * (minVal):
+	# 		errIndex.append(errMat[i])
+	# print("<<>>><<<<<<>>>")
+	# print("시작!")
+	# print("errMAt:{}".format(len(errIndex)))
 
-	c = np.random.randint(len(errIndex))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
-	y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
+	while (True):
+		c = np.random.randint(len(errIndex))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
+		y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
+		if (mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
+			break
 
 	return img8[r][y:y+blocksize, x:x+blocksize]	# 텍스쳐에서 해당 블록 return
 
@@ -1355,8 +1394,11 @@ def fin_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	# 
 	# [(H기준 : nH(들어가는 블록개수) * (오버랩 뺀 블록실제사이즈) + 마지막에 오버랩 안되므로 블록 하나 더 사이즈) , (W기준 동일) , 색상] => 0으로 초기화
 	# Starting index and block
 	H, W = image.shape[:2]
-	pre_img8 = Pre_RotateExImg(image, blocksize, overlap, outH, outW, tolerance)
+	pre_img8 = Pre_RotateExImg(image, blocksize, overlap, tolerance)
 	#pre_img8 = Pre_AddRotateIndex(pre_img8)
+	tmp_img8 = list(zip(*pre_img8))
+	img8 = tmp_img8[0]
+	mask = tmp_img8[1]
 
 	randH = np.random.randint(H - blocksize)  # 블록사이즈 한줄 뺀 값에서 랜덤한 값
 	randW = np.random.randint(W - blocksize)  # 블록사이즈 한줄 뺀 값에서 랜덤한 값
@@ -1375,9 +1417,11 @@ def fin_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	# 
 		# blkIdx = block index to put in
 		# blkIdx = 블록에서 오버랩 되는 부분 시작점 인덱스
 		refBlock = textureMap[:blocksize, (blkIdx-blocksize+overlap):(blkIdx+overlap)]	#texturemap 의 한줄제외 모든 행에 대하여 열단위로 블록 한 칸만큼 계속 이동하면서 대입
-		patchBlock = fin_findPatchHorizontal(refBlock, pre_img8, blocksize, overlap, tolerance)	# 미리 만든 패치 찾는 함수
+		patchBlock = fin_findPatchHorizontal(refBlock, img8, blocksize, overlap, tolerance, mask)	# 미리 만든 패치 찾는 함수
 		minCutPatch = getMinCutPatchHorizontal(refBlock, patchBlock, blocksize, overlap)	# 미리 만든 최소 경로 찾는 함수
 		textureMap[:blocksize, (blkIdx):(blkIdx+blocksize)] = minCutPatch	# 오버랩부분 경계선 최소경로로 자름
+
+
 	print("{} out of {} rows complete...".format(1, nH+1))
 
 
@@ -1391,9 +1435,10 @@ def fin_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	# 
 		# blkIdx = block index to put in
 		# blkIdx = 블록에서 오버랩 되는 부분 시작점 인덱스
 		refBlock = textureMap[(blkIdx-blocksize+overlap):(blkIdx+overlap), :blocksize]	#texturemap 의 한줄제외 모든 열에 대하여 행단위로 블록 한 칸만큼 계속 이동하면서 대입
-		patchBlock = fin_findPatchVertical(refBlock, pre_img8, blocksize, overlap, tolerance)	# 미리 만든 패치 찾는 함수
+		patchBlock = fin_findPatchVertical(refBlock, img8, blocksize, overlap, tolerance, mask)	# 미리 만든 패치 찾는 함수
 		minCutPatch = getMinCutPatchVertical(refBlock, patchBlock, blocksize, overlap)	# 미리 만든 최소 경로 찾는 함수
 		textureMap[(blkIdx):(blkIdx+blocksize), :blocksize] = minCutPatch	# 오버랩부분 경계선 최소경로로 자름
+
 
 	### Fill in the other rows and columns
 	for i in range(1, nH+1):
@@ -1405,7 +1450,7 @@ def fin_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	# 
 			refBlockLeft = textureMap[(blkIndexI):(blkIndexI+blocksize), (blkIndexJ-blocksize+overlap):(blkIndexJ+overlap)]
 			refBlockTop  = textureMap[(blkIndexI-blocksize+overlap):(blkIndexI+overlap), (blkIndexJ):(blkIndexJ+blocksize)]
 
-			patchBlock = fin_findPatchBoth(refBlockLeft, refBlockTop, pre_img8, blocksize, overlap, tolerance)
+			patchBlock = fin_findPatchBoth(refBlockLeft, refBlockTop, img8, blocksize, overlap, tolerance, mask)
 			minCutPatch = getMinCutPatchBoth(refBlockLeft, refBlockTop, patchBlock, blocksize, overlap)
 
 			textureMap[(blkIndexI):(blkIndexI+blocksize), (blkIndexJ):(blkIndexJ+blocksize)] = minCutPatch
@@ -1416,7 +1461,8 @@ def fin_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	# 
 			# break
 		print("{} out of {} rows complete...".format(i+1, nH+1))
 		# break
-
+	plt.imshow(textureMap)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+	plt.show()  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
 	return textureMap
 
 # 여러 회전각도에 대하여 회전시키는 시도
