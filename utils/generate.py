@@ -1460,9 +1460,7 @@ def fin_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	# 
 			# textureMap[(blkIndexI-blocksize+overlap):(blkIndexI+overlap), (blkIndexJ):(blkIndexJ+blocksize)] = [0.5, 0.6, 0.7]
 			# break
 		print("{} out of {} rows complete...".format(i+1, nH+1))
-		# break
-	plt.imshow(textureMap)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-	plt.show()  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+
 	return textureMap
 
 # 여러 회전각도에 대하여 회전시키는 시도
