@@ -84,7 +84,7 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 			textureMap = fin_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
 			textureMap = (255 * textureMap).astype(np.uint8)
 			textureMap = cv2.cvtColor(textureMap, cv2.COLOR_RGB2BGR)
-			cv2.imwrite("Output8rotate_"+(i+1)+"_.png", textureMap)
+			cv2.imwrite("Output8rotate_"+str(i+1)+"_.png", textureMap)
 		# save test
 		# plt.imshow(textureMap)	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
 		# plt.show()	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
