@@ -59,6 +59,7 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 			image = cv2.resize(image, (H, H))
 	else:
 		image = cv2.resize(image, (110, 110))
+	print("image change : {}".format(image.shape))
 
 	outH, outW = int(scale * H), int(scale * W)  # 아웃풋 결과 : 이미지의 scale(4) 배로 키워줌
 
