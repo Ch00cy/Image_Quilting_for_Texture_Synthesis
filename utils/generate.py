@@ -535,7 +535,24 @@ def t_findPatchHorizontal(refBlock, img8, img8_mask, blocksize, overlap, toleran
 			r = errIndex[c][2]
 			if (img8_mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
 				break
+	elif (tan_mask[:blocksize, (blkIdx):(blkIdx + blocksize)] == 2).any():  # 마스크 2 안에 들어갈 경우
+		errMid = []
+		for ii in range(len(errMat)):
+			for jj in range(len(where_mid)):
+				if (errMat[ii][0] == where_mid[jj][0]) and (errMat[ii][1] == where_mid[jj][1]):
+					errMid.append(errMat[ii])
 
+		errMid.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
+
+		errIndex = []
+		errIndex.append(errMid[:5])  # 앞에 5개
+		errIndex = sum(errIndex, [])  # [] 한꺼풀 벗겨주기
+
+		while (True):
+			c = np.random.randint(len(errIndex))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
+			y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
+			if (img8_mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
+				break
 	else:	# 마스크 0 밖 부분
 		errBlack = []
 		for ii in range(len(errMat)):
@@ -654,7 +671,25 @@ def t_findPatchBoth(refBlockLeft, refBlockTop, img8, img8_mask, blocksize, overl
 			y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
 			if (img8_mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
 				break
+	elif (tan_mask[(blkIndexI):(blkIndexI + blocksize), (blkIndexJ):(blkIndexJ + blocksize)] == 2).any():  # 마스크 2 안에 들어갈 경우
+		print("22222")
+		errMid = []
+		for ii in range(len(errMat)):
+			for jj in range(len(where_mid)):
+				if (errMat[ii][0] == where_mid[jj][0]) and (errMat[ii][1] == where_mid[jj][1]):
+					errMid.append(errMat[ii])
 
+		errMid.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
+
+		errIndex = []
+		errIndex.append(errMid[:5])  # 앞에 5개
+		errIndex = sum(errIndex, [])  # [] 한꺼풀 벗겨주기
+
+		while (True):
+			c = np.random.randint(len(errIndex))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
+			y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
+			if (img8_mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
+				break
 	else:  # 마스크 0 밖 부분
 		errBlack = []
 		for ii in range(len(errMat)):
@@ -710,29 +745,28 @@ def t_findPatchVertical(refBlock, img8, img8_mask, blocksize, overlap, tolerance
 		errIndex = sum(errIndex, [])  # [] 한꺼풀 벗겨주기
 
 		while (True):
-			c = np.random.randint(
-				len(errIndex))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
+			c = np.random.randint(len(errIndex))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
 			y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
 			if (img8_mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
 				break
-	# elif (tan_mask[(blkIdx):(blkIdx + blocksize), :blocksize] == 2).any():  # 마스크 2 안에 들어갈 경우
-	# 	errMid = []
-	# 	for ii in range(len(errMat)):
-	# 		for jj in range(len(where_mid)):
-	# 			if (errMat[ii][0] == where_mid[jj][0]) and (errMat[ii][1] == where_mid[jj][1]):
-	# 				errMid.append(errMat[ii])
-	#
-	# 	errMid.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
-	#
-	# 	errIndex = []
-	# 	errIndex.append(errMid[:5])  # 앞에 5개
-	# 	errIndex = sum(errIndex, [])  # [] 한꺼풀 벗겨주기
-	#
-	# 	while (True):
-	# 		c = np.random.randint(len(errIndex))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
-	# 		y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
-	# 		if (img8_mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
-	# 			break
+	elif (tan_mask[(blkIdx):(blkIdx + blocksize), :blocksize] == 2).any():  # 마스크 2 안에 들어갈 경우
+		errMid = []
+		for ii in range(len(errMat)):
+			for jj in range(len(where_mid)):
+				if (errMat[ii][0] == where_mid[jj][0]) and (errMat[ii][1] == where_mid[jj][1]):
+					errMid.append(errMat[ii])
+
+		errMid.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
+
+		errIndex = []
+		errIndex.append(errMid[:5])  # 앞에 5개
+		errIndex = sum(errIndex, [])  # [] 한꺼풀 벗겨주기
+
+		while (True):
+			c = np.random.randint(len(errIndex))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
+			y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
+			if (img8_mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
+				break
 	else:  # 마스크 0 밖 부분
 
 		errBlack = []
