@@ -19,7 +19,7 @@ parser = argparse.ArgumentParser()	# ArgumentParser 객체
 parser.add_argument("-i", "--image_path", required=True, type=str, help="path of image you want to quilt")	# 이미지 경로 - 필수
 parser.add_argument("-b", "--block_size", type=int, default=20, help="block size in pixels")	# 블록 사이즈 (20픽셀)
 parser.add_argument("-o", "--overlap", type=int, default=1.0/6, help="overlap size in pixels (defaults to 1/6th of block size)")	# 오버랩 부분 (1/6 픽셀)
-parser.add_argument("-s", "--scale", type=float, default=1, help="Scaling w.r.t. to image size")	# 결과 이미지 사이즈 얼마나 배로 늘릴것인가 (4)
+parser.add_argument("-s", "--scale", type=float, default=4, help="Scaling w.r.t. to image size")	# 결과 이미지 사이즈 얼마나 배로 늘릴것인가 (4)
 parser.add_argument("-n", "--num_outputs", type=int, default=1, help="number of output textures required")	# 결과 텍스쳐 몇개 생성? (1)
 parser.add_argument("-f", "--output_file", type=str, default="output.png", help="output file name")	# 결과 어디에 저장? (output.png)
 parser.add_argument("-p", "--plot", type=int, default=1, help="Show plots")	# plot 보여줄 여부 (1)
@@ -94,7 +94,7 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 		plt.show()	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
 		textureMap = (255 * textureMap).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
 		textureMap = cv2.cvtColor(textureMap, cv2.COLOR_RGB2BGR)
-		cv2.imwrite("OutputFoamData.png", textureMap)
+		cv2.imwrite("FinalResult.png", textureMap)
 
 		# plt.imshow(textureMap1)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
 		# plt.show()  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
