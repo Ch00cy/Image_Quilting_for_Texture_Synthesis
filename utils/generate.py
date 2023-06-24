@@ -334,83 +334,247 @@ def generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	# main
 
 
 #추가#########################
+
+# 전처리
+def Pre_RotateExImg(image):  # 기존 이미지 8번 회전된 이미지로 만드는 내가만든 함수
+	####try################################################
+	# 이미지의 크기를 잡고 이미지의 중심을 계산합니다.
+	(h, w) = image.shape[:2]
+	(cX, cY) = (w // 2, h // 2)
+	img8 = []
+
+	for i in range(1, 9):
+		imax = 8
+		r_seta = i / imax * 360
+
+		# 이미지의 중심을 중심으로 이미지를 r_seta도 회전합니다.
+		M = cv2.getRotationMatrix2D((cX, cY), r_seta, 1.0)  # cv2.getRotationMatrix2D(회전중심좌표(x,y 튜플), 회전각도, 스케일)
+		rotated_seta = cv2.warpAffine(image, M,
+									  (h, w))  # cv2.warpAffine(src 원본이미지, M 아핀 맵 행렬, dsize 출력 이미지 크기) : 회전 변환을 계산
+
+		# # 0,0,0 : 검은 부분일 경우
+		# for h_rimg in range(rotated_seta.shape[0]):
+		# 	for w_rimg in range(rotated_seta.shape[1]):
+		# 		if np.all(rotated_seta[h_rimg, w_rimg] == 0):
+		# 			if is_toroidal[i - 1] == 1:  # toroidal : 타일 로 대체
+		# 				rotated_seta[h_rimg, w_rimg] = image[h_rimg, w_rimg]
+		# 			elif is_toroidal[i - 1] == 0:  # non-torodial : 미러링 으로 대체
+		# 				rotated_seta[h_rimg, w_rimg] = image[h - 1 - h_rimg, w - 1 - w_rimg]
+		#
+		# plt.imshow(rotated_seta)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+		# plt.show()
+
+		# # 검은 부분 : tan 로 계산 경우
+		# half_seta = (r_seta%90)/2
+		# tan_seta = math.tan(half_seta)
+		# L = w/2
+		# print("half:{} , tan: {}, L:{}".format(half_seta,tan_seta,L))
+		# line_1 = int((tan_seta+1)*L)
+		# line_2 = int((((1-tan_seta)/(1+tan_seta))-tan_seta)*L)
+		# line_3 = int((1-((1-tan_seta)/(1+tan_seta)))*L)
+		# line_4 = int(L*(1-math.tan(r_seta)*(1/2)*(tan_seta+1)))
+		#
+		# print("1:{} , 2: {}, 4:{}".format(line_1,line_2,line_4))
+		#
+		# tmp = line_1
+		# for row in range(20):
+		# 	for col in range(20):
+		# 		rotated_seta[row,col] = [255,0,0]
+		# 	tmp -= 1
+
+		# 검은 부분 : sin cos  로 계산 경우
+		L = w
+		sin_seta = math.sin(r_seta % 90)
+		cos_seta = math.cos(r_seta % 90)
+		t = L / (sin_seta + cos_seta + 1)
+
+		line_1 = ceil(t * sin_seta)  # 넉넉하게 라인 길이를 잡아줘야 하므로 올림으로 하였다.
+		line_2 = ceil(t)
+		line_3 = ceil(t * cos_seta)
+		# print("sin:{} , cos: {}, t:{}".format(sin_seta,cos_seta,t))
+		# print("1:{} , 2: {}, 3:{}".format(line_1, line_2, line_3))
+		# print("h: {}, W: {}".format(h,w))
+
+		# #기존 확인용###############
+		# fill_black_img = rotated_seta.copy()
+		# # 왼쪽 위 부분
+		# tmp = line_1
+		# for y in range(line_1):	# 원래대로라면 line_3 이 들어가야 하지만 검은 삼각형이 w,h가 같지않으므로 위에서부터 1칸씩 빼면서 내려가면 깔끔하게 삼각형이 안채워져서 원본이 정사각형이라는 가정 하(이것도 상관없는것같긴한데..)에 깔끔한 검은삼각형을 채우기 위하여 w,h가 같다고 가정하고 채워주기 위해 w=h 로 하였다..
+		# 	for x in range(tmp):
+		# 		fill_black_img[y, x] = [1, 0, 0]
+		# 	tmp -= 1
+		# # 왼쪽 아래 부분
+		# tmp = 1
+		# for y in range(L-line_1,L):
+		# 	for x in range(tmp):
+		# 		fill_black_img[y, x] = [1, 0, 0]
+		# 	tmp += 1
+		# # 오른쪽 위 부분
+		# tmp = line_1
+		# for y in range(line_1):
+		# 	for x in range(L-tmp,L):
+		# 		fill_black_img[y, x] = [1, 0, 0]
+		# 	tmp -= 1
+		# # 오른쪽 아래 부분
+		# tmp = 0
+		# for y in range(L-line_1,L):  # 원래대로라면 line_3 이 들어가야 하지만 검은 삼각형이 w,h가 같지않으므로 위에서부터 1칸씩 빼면서 내려가면 깔끔하게 삼각형이 안채워져서 원본이 정사각형이라는 가정 하(이것도 상관없는것같긴한데..)에 깔끔한 검은삼각형을 채우기 위하여 w,h가 같다고 가정하고 채워주기 위해 w=h 로 하였다..
+		# 	for x in range(L-tmp,L):
+		# 		fill_black_img[y, x] = [1, 0, 0]
+		# 	tmp += 1
+		# pre_img = cv2.addWeighted(rotated_seta, 0.5, fill_black_img, 0.5, 0)
+		# #############################
+
+		## 수정1
+		mask_black = np.ones((h, w, 3))
+		black_h = line_1  # 검은 삼각형 높이부분 : tsin@
+		black_w = line_1  # 검은 삼각형 밑변부분 : tcos@
+
+		# rotation -> 검은 삼각형 부분 => 마스크 만들기
+		# 왼쪽 위 부분
+		tmp = black_h
+		for y in range(
+				black_w):  # 원래대로라면 line_3 이 들어가야 하지만 검은 삼각형이 w,h가 같지않으므로 위에서부터 1칸씩 빼면서 내려가면 깔끔하게 삼각형이 안채워져서 원본이 정사각형이라는 가정 하(이것도 상관없는것같긴한데..)에 깔끔한 검은삼각형을 채우기 위하여 w,h가 같다고 가정하고 채워주기 위해 w=h 로 하였다..
+			for x in range(tmp):
+				mask_black[y, x] = 0
+			tmp -= 1
+		# 왼쪽 아래 부분
+		tmp = 1
+		for y in range(L - black_h, L):
+			for x in range(tmp):
+				mask_black[y, x] = 0
+			tmp += 1
+		# 오른쪽 위 부분
+		tmp = black_w
+		for y in range(black_h):
+			for x in range(L - tmp, L):
+				mask_black[y, x] = 0
+			tmp -= 1
+		# 오른쪽 아래 부분
+		tmp = 0
+		for y in range(L - black_h,
+					   L):  # 원래대로라면 line_3 이 들어가야 하지만 검은 삼각형이 w,h가 같지않으므로 위에서부터 1칸씩 빼면서 내려가면 깔끔하게 삼각형이 안채워져서 원본이 정사각형이라는 가정 하(이것도 상관없는것같긴한데..)에 깔끔한 검은삼각형을 채우기 위하여 w,h가 같다고 가정하고 채워주기 위해 w=h 로 하였다..
+			for x in range(L - tmp, L):
+				mask_black[y, x] = 0
+			tmp += 1
+
+		# rotation -> 검은 삼각형 부분 => 합성 #########
+		# r_texture_black = r_generateTextureMap(rotated_seta, blocksize, overlap, h, w, tolerance, mask_black)	# 방향성 고려해서 새로 합성한 후보이미지
+
+		# 어차피 회전 예제 이미지의 방향값을 가져오는 것이 목적이므로 더 자연스러운 새로만든 텍스쳐를 사용한다.
+		# r_texture_black1 = r_texture_black[:h, :w, :]	# r_generateTextureMap () 함수 시 블록 사이즈에 나눠떨어지게 크기가 생성되므로 h,w 라도 좀 더 크게 잡힌다. 따라서 크기가 달라 아래에서 연산이 안되므로 조절해준다.
+		# r_texture = rotated_seta * mask_black + r_texture_black1 * (1-mask_black)	# 기존 이미지 + 방향성 합성 이미지 검은부분용
+
+		# plt.imshow(r_texture_black)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+		# plt.show()
+
+		# img8.append(r_texture_black)
+
+		img8.append([rotated_seta, mask_black])
+
+	# # Save
+	# pre_img = (255 * r_texture_black).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
+	# pre_img = cv2.cvtColor(pre_img, cv2.COLOR_RGB2BGR)
+	#
+	# cv2.imwrite("8img_" + str(i) + ".png", pre_img)
+	#
+	# pre_img1 = (255 * r_texture).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
+	# pre_img1 = cv2.cvtColor(pre_img1, cv2.COLOR_RGB2BGR)
+	#
+	# cv2.imwrite("10img_" + str(i) + ".png", pre_img1)
+
+	return img8
+
+###########################
 # tan 추가 합성
-def t_findPatchHorizontal(refBlock, texture, blocksize, overlap, tolerance, mask, blkIdx, where_white, where_black):	# tolerance : 허용오차
+def t_findPatchHorizontal(refBlock, img8, img8_mask, blocksize, overlap, tolerance, tan_mask, blkIdx, where_white, where_black, where_mid):	# tolerance : 허용오차
 	'''
 	Find best horizontal match from the texture
 	사용: findPatchHorizontal(refBlock, image, blocksize, overlap, tolerance)
 	'''
-	H, W = texture.shape[:2]	# 튜플 압축 풀기 -> 해당 texture 의 rows, columns  값 추출
-	errMat = np.zeros((H-blocksize, W-blocksize)) + inf	# np.zeros : 0으로 채워진 array 생성 / [[W-blocksize 만큼]*H-blocksize만큼] 0으로된 2차원 배열 생성 / inf 는 왜더하는지는 모르겠음???
+	H, W = img8[0].shape[:2]	# 튜플 압축 풀기 -> 해당 texture 의 rows, columns  값 추출
+	errMat =  []
+
 	for i, j in product(range(H-blocksize), range(W-blocksize)):	# product : 중복 순열 , 데이터를 뽑아 일렬로 나열하는 모든 경우의 수 / range : 0~해당 값까지
 																	# openCV 경우 -> (rows, columns, channels) 튜플 보유,1,2, ... ,H-blocksize] [0,1,2, ... , W-blocksize] => (0,0),(0,1)..(0,W-blocksize),(1,0),...,(H-blocksize,W-blocksize)
-		rmsVal = ((texture[i:i+blocksize, j:j+overlap] - refBlock[:, -overlap:])**2).mean()	# (이웃 블록의 오버랩 부분 - 각 블록의 오버랩 부분) 제곱 의 평균
+		for r in range(len(img8)):
+			if (img8_mask[r][i:i + blocksize, j:j + blocksize] == 1).all():	# 회전 이미지의 이미지 유효값에서의 블록인 경우 만
+				rmsVal = ((img8[r][i:i + blocksize, j:j + overlap] - refBlock[:,-overlap:]) ** 2).mean()  # (이웃 블록의 오버랩 부분 - 각 블록의 오버랩 부분) 제곱 의 평균
+				if rmsVal > 0:
+					errMat.append([i, j, r, rmsVal])  # 텍스쳐 크기에서 블록사이즈만큼 한줄 작아진 배열에 대입
 
-		if rmsVal > 0:
-			errMat[i, j] = rmsVal	# 텍스쳐 크기에서 블록사이즈만큼 한줄 작아진 배열에 대입
+	y,x,r = 0,0,0
+	if (tan_mask[:blocksize, (blkIdx):(blkIdx + blocksize)] == 1).any():  # 마스크 1 안에 들어갈 경우
+		errWhite = []
+		for ii in range(len(errMat)):
+			for jj in range(len(where_white)):
+				if(errMat[ii][0] == where_white[jj][0]) and (errMat[ii][1] == where_white[jj][1]):
+					errWhite.append(errMat[ii])
 
-	#minVal = np.min(errMat)  # 에러범위 값 중 가장 작은 것
-	y = 0
-	x = 0
+		errWhite.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
 
-	if (mask[:blocksize, (blkIdx):(blkIdx + blocksize)] == 1).any():  # 마스크 안에 들어갈 경우
+		errIndex = []
+		errIndex.append(errWhite[:5])  # 앞에 5개
+		errIndex = sum(errIndex, [])  # [] 한꺼풀 벗겨주기
 
-		minVal = 1000
-		c = 0
-		for ii in range(len(where_white)):
-			if errMat[where_white[ii][0], where_white[ii][1]] < minVal:
-				minVal = errMat[where_white[ii][0], where_white[ii][1]]
-				c = ii
+		# where_white2=[]
+		# for k in range(len(where_white)):	# foam data 일정이상 하얀부분인 인덱스 중
+		# 	if errMat[where_white[k][0],where_white[k][1]] < (1.0 + tolerance)*(minVal):	# err가 허용오차 값 이하일때의 인덱스 따로 빼둠
+		# 		where_white2.append(where_white[k])
+		# if len(where_white2)==0:	# 하얀부분의 해당위치의 err가 허용오차 값 이하인 블록이 존재하지 않을 때
+		# 	for k in range(len(where_white)):  # foam data 일정이상 하얀부분인 인덱스 중
+		# 		if errMat[where_white[k][0], where_white[k][1]] < (1.0 + 0.5) * (minVal):  # 허용 오차 늘려서 에러 다시 구함
+		# 			where_white2.append(where_white[k])
+		# 	if len(where_white2)==0:
+		# 		for k in range(len(where_white)):  # foam data 일정이상 하얀부분인 인덱스 중
+		# 			where_white2.append(where_white[k])
 
-		where_white2=[]
-		for k in range(len(where_white)):	# foam data 일정이상 하얀부분인 인덱스 중
-			if errMat[where_white[k][0],where_white[k][1]] < (1.0 + tolerance)*(minVal):	# err가 허용오차 값 이하일때의 인덱스 따로 빼둠
-				where_white2.append(where_white[k])
-		if len(where_white2)==0:	# 하얀부분의 해당위치의 err가 허용오차 값 이하인 블록이 존재하지 않을 때
-			for k in range(len(where_white)):  # foam data 일정이상 하얀부분인 인덱스 중
-				if errMat[where_white[k][0], where_white[k][1]] < (1.0 + 0.5) * (minVal):  # 허용 오차 늘려서 에러 다시 구함
-					where_white2.append(where_white[k])
-			if len(where_white2)==0:
-				for k in range(len(where_white)):  # foam data 일정이상 하얀부분인 인덱스 중
-					where_white2.append(where_white[k])
+		while (True):
+			c = np.random.randint(len(errIndex))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
+			y = errIndex[c][0]
+			x = errIndex[c][1]
+			r = errIndex[c][2]
+			if (img8_mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
+				break
+			else:
+				"print : error : 랜덤하게 뽑은 특정 색깔의 블록이 이미지 회전값에 다 안들어갑니다.."
+	# return img8[r][y:y + blocksize, x:x + blocksize]  # 텍스쳐에서 해당 블록 return
 
-			c = np.random.randint(len(where_white2))
-			y = where_white2[c][0]
-			x = where_white2[c][1]
-		else:
-			c = np.random.randint(len(where_white))
-			y = where_white[c][0]
-			x = where_white[c][1]
-	else:	# 마스크 밖 부분
+	else:	# 마스크 0 밖 부분
 
-		minVal = 1000
-		c = 0
-		for ii in range(len(where_black)):
-			if errMat[where_black[ii][0], where_black[ii][1]] < minVal:
-				minVal = errMat[where_black[ii][0], where_black[ii][1]]
-				c = ii
+		errBlack = []
+		for ii in range(len(errMat)):
+			for jj in range(len(where_black)):
+				if (errMat[ii][0] == where_black[jj][0]) and (errMat[ii][1] == where_black[jj][1]):
+					errBlack.append(errMat[ii])
 
-		where_black2 = []
-		for k in range(len(where_black)):  # foam data 일정이상 검은부분인 인덱스 중
-			if errMat[where_black[k][0], where_black[k][1]] < (1.0 + tolerance) * (
-					minVal):  # err가 허용오차 값 이하일때의 인덱스 따로 빼둠
-				where_black2.append(where_black[k])
-		if len(where_black2) == 0:  # 검은부분의 해당위치의 err가 허용오차 값 이하인 블록이 존재하지 않을 때
-			for k in range(len(where_black)):  # foam data 일정이상 하얀부분인 인덱스 중
-				if errMat[where_black[k][0], where_black[k][1]] < (1.0 + 0.5) * (minVal):  # 허용 오차 늘려서 에러 다시 구함
+		errBlack.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
 
-					where_black2.append(where_black[k])
-			if len(where_black2)==0:
-				for k in range(len(where_black)):  # foam data 일정이상 하얀부분인 인덱스 중
-					where_black2.append(where_black[k])
+		errIndex = []
+		errIndex.append(errBlack[:5])  # 앞에 5개
+		errIndex = sum(errIndex, [])  # [] 한꺼풀 벗겨주기
 
-			c = np.random.randint(len(where_black2))
-			y = where_black2[c][0]
-			x = where_black2[c][1]
-		else:  # 검은부분의 해당위치의 err가 허용오차 값 이하인 블록이 존재할때 -> 랜덤하게
-			c = np.random.randint(len(where_black2))
-			y = where_black2[c][0]
-			x = where_black2[c][1]
+		# where_black2 = []
+		# for k in range(len(where_black)):  # foam data 일정이상 검은부분인 인덱스 중
+		# 	if errMat[where_black[k][0], where_black[k][1]] < (1.0 + tolerance) * (
+		# 			minVal):  # err가 허용오차 값 이하일때의 인덱스 따로 빼둠
+		# 		where_black2.append(where_black[k])
+		# if len(where_black2) == 0:  # 검은부분의 해당위치의 err가 허용오차 값 이하인 블록이 존재하지 않을 때
+		# 	for k in range(len(where_black)):  # foam data 일정이상 하얀부분인 인덱스 중
+		# 		if errMat[where_black[k][0], where_black[k][1]] < (1.0 + 0.5) * (minVal):  # 허용 오차 늘려서 에러 다시 구함
+		#
+		# 			where_black2.append(where_black[k])
+		# 	if len(where_black2)==0:
+		# 		for k in range(len(where_black)):  # foam data 일정이상 하얀부분인 인덱스 중
+		# 			where_black2.append(where_black[k])
+
+		while(True):
+			c = np.random.randint(len(errIndex))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
+			y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
+			if (img8_mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
+				break
+			else:
+				"print : error : 랜덤하게 뽑은 특정 색깔의 블록이 이미지 회전값에 다 안들어갑니다.."
+		# return img8[r][y:y + blocksize, x:x + blocksize]  # 텍스쳐에서 해당 블록 return
 
 	# count = []
 	# for i in range(len(y)):
@@ -452,274 +616,132 @@ def t_findPatchHorizontal(refBlock, texture, blocksize, overlap, tolerance, mask
 
 	# y, x = y[c], x[c]  # 허용오차 안의 해당 에러 중 랜덤하게 뽑음
 
-	return texture[y:y+blocksize, x:x+blocksize]	# 텍스쳐에서 해당 블록 return
-
-
+	return img8[r][y:y + blocksize, x:x + blocksize]	# 텍스쳐에서 해당 블록 return
 
 
 # tan 추가 합성
-def t_findPatchBoth(refBlockLeft, refBlockTop, texture, blocksize, overlap, tolerance, mask, blkIndexI, blkIndexJ, where_white, where_black):
+def t_findPatchBoth(refBlockLeft, refBlockTop, img8, img8_mask, blocksize, overlap, tolerance, tan_mask, blkIndexI, blkIndexJ, where_white, where_black, where_mid):
 	'''
 	Find best horizontal and vertical match from the texture
 	사용: findPatchBoth(refBlockLeft, refBlockTop, image, blocksize, overlap, tolerance)
 	'''
-	H, W = texture.shape[:2]	# 튜플 압축 풀기 -> 해당 texture 의 rows, columns  값 추출
-								# openCV 경우 -> (rows, columns, channels) 튜플 보유
-	errMat = np.zeros((H-blocksize, W-blocksize)) + inf	# np.zeros : 0으로 채워진 array 생성 / [[W-blocksize 만큼]*H-blocksize만큼] 0으로된 2차원 배열 생성
+	H, W = img8[0].shape[:2]
+	errMat = []
+
 	for i, j in product(range(H-blocksize), range(W-blocksize)):	# product : 중복 순열 , 데이터를 뽑아 일렬로 나열하는 모든 경우의 수 / range : 0~해당 값까지
 																	# [0,1,2, ... ,H-blocksize] [0,1,2, ... , W-blocksize] => (0,0),(0,1)..(0,W-blocksize),(1,0),...,(H-blocksize,W-blocksize)
-		rmsVal = ((texture[i:i+overlap, j:j+blocksize] - refBlockTop[-overlap:, :])**2).mean()	# (위의 이웃 블록의 오버랩 부분 - 각 블록의 위쪽 오버랩 부분) 제곱 의 평균
-		rmsVal = rmsVal + ((texture[i:i+blocksize, j:j+overlap] - refBlockLeft[:, -overlap:])**2).mean()	# (왼쪽의 이웃 블록의 오버랩 부분 - 각 블록의 오른쪽 오버랩 부분) 제곱 의 평균
-		if rmsVal > 0:
-			errMat[i, j] = rmsVal	# 텍스쳐 크기에서 블록사이즈만큼 한줄 작아진 배열에 대입
+		for r in range(len(img8)):
+			if (img8_mask[r][i:i + blocksize, j:j + blocksize] == 1).all():  # 회전 이미지의 이미지 유효값에서의 블록인 경우 만
+				rmsVal = ((img8[r][i:i+overlap, j:j+blocksize] - refBlockTop[-overlap:, :])**2).mean()	# (위의 이웃 블록의 오버랩 부분 - 각 블록의 위쪽 오버랩 부분) 제곱 의 평균
+				rmsVal = rmsVal + ((img8[r][i:i+blocksize, j:j+overlap] - refBlockLeft[:, -overlap:])**2).mean()	# (왼쪽의 이웃 블록의 오버랩 부분 - 각 블록의 오른쪽 오버랩 부분) 제곱 의 평균
 
-	#minVal = np.min(errMat)	# 에러범위 값 중 가장 작은 것
-	# y, x = np.where(errMat < (1.0 + tolerance)*(minVal))	# np.where: 조건에 맞는 위치 인덱스 찾기 / 해당 허용오차보다 작은 E고름
-	# 														# y : [뽑힌 원소 각각 행 어디인지]
-	# 														# x : [뽑힌 원소 각각 열 어디인지] - (y,x) 둘이 이어서 위치 찾기
+				if rmsVal > 0:
+					errMat.append([i, j, r, rmsVal])	# 텍스쳐 크기에서 블록사이즈만큼 한줄 작아진 배열에 대입
 
-	y = 0
-	x = 0
+	if (tan_mask[(blkIndexI):(blkIndexI + blocksize), (blkIndexJ):(blkIndexJ + blocksize)] == 1).any():  # 마스크 1 안에 들어갈 경우
+		errWhite = []
+		for ii in range(len(errMat)):
+			for jj in range(len(where_white)):
+				if (errMat[ii][0] == where_white[jj][0]) and (errMat[ii][1] == where_white[jj][1]):
+					errWhite.append(errMat[ii])
 
-	if (mask[(blkIndexI):(blkIndexI + blocksize), (blkIndexJ):(blkIndexJ + blocksize)]==1).any():  # 마스크 안에 들어갈 경우
+		errWhite.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
 
+		errIndex = []
+		errIndex.append(errWhite[:5])  # 앞에 5개
+		errIndex = sum(errIndex, [])  # [] 한꺼풀 벗겨주기
 
-		minVal = 1000
-		c = 0
-		for ii in range(len(where_white)):
-			if errMat[where_white[ii][0], where_white[ii][1]] < minVal:
-				minVal = errMat[where_white[ii][0], where_white[ii][1]]
-				c = ii
+		while (True):
+			c = np.random.randint(
+				len(errIndex))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
+			y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
+			if (img8_mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
+				break
 
-		where_white2 = []
-		for k in range(len(where_white)):  # foam data 일정이상 하얀부분인 인덱스 중
-			if errMat[where_white[k][0], where_white[k][1]] < (1.0 + tolerance) * (minVal):  # err가 허용오차 값 이하일때의 인덱스 따로 빼둠
-				where_white2.append(where_white[k])
-		if len(where_white2) == 0:  # 하얀부분의 해당위치의 err가 허용오차 값 이하인 블록이 존재하지 않을 때
-			for k in range(len(where_white)):  # foam data 일정이상 하얀부분인 인덱스 중
-				if errMat[where_white[k][0], where_white[k][1]] < (1.0 + 0.3) * (minVal):  # 허용 오차 늘려서 에러 다시 구함
-					where_white2.append(where_white[k])
-			if len(where_white2)==0:
-				for k in range(len(where_white)):  # foam data 일정이상 하얀부분인 인덱스 중
-					where_white2.append(where_white[k])
+	else:  # 마스크 0 밖 부분
 
-			c = np.random.randint(len(where_white2))
-			y = where_white2[c][0]
-			x = where_white2[c][1]
-		else:
-			c = np.random.randint(len(where_white))
-			y = where_white[c][0]
-			x = where_white[c][1]
-	else:  # 마스크 밖 부분
+		errBlack = []
+		for ii in range(len(errMat)):
+			for jj in range(len(where_black)):
+				if (errMat[ii][0] == where_black[jj][0]) and (errMat[ii][1] == where_black[jj][1]):
+					errBlack.append(errMat[ii])
 
-		minVal = 1000
-		c = 0
-		for ii in range(len(where_black)):
-			if errMat[where_black[ii][0], where_black[ii][1]] < minVal:
-				minVal = errMat[where_black[ii][0], where_black[ii][1]]
-				c = ii
+		errBlack.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
 
-		where_black2 = []
-		for k in range(len(where_black)):  # foam data 일정이상 검은부분인 인덱스 중
-			if errMat[where_black[k][0], where_black[k][1]] < (1.0 + tolerance) * (
-			minVal):  # err가 허용오차 값 이하일때의 인덱스 따로 빼둠
-				where_black2.append(where_black[k])
-		if len(where_black2) == 0:  # 검은부분의 해당위치의 err가 허용오차 값 이하인 블록이 존재하지 않을 때
-			for k in range(len(where_black)):  # foam data 일정이상 하얀부분인 인덱스 중
-				if errMat[where_black[k][0], where_black[k][1]] < (1.0 + 0.5) * (minVal):  # 허용 오차 늘려서 에러 다시 구함
+		errIndex = []
+		errIndex.append(errBlack[:5])  # 앞에 5개
+		errIndex = sum(errIndex, [])  # [] 한꺼풀 벗겨주기
 
-					where_black2.append(where_black[k])
-			if len(where_black2) == 0:
-				for k in range(len(where_black)):  # foam data 일정이상 하얀부분인 인덱스 중
-					where_black2.append(where_black[k])
+		while (True):
+			c = np.random.randint(
+				len(errIndex))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
+			y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
+			if (img8_mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
+				break
 
-			c = np.random.randint(len(where_black2))
-			y = where_black2[c][0]
-			x = where_black2[c][1]
-		else:  # 검은부분의 해당위치의 err가 허용오차 값 이하인 블록이 존재할때 -> 랜덤하게
-			c = np.random.randint(len(where_black2))
-			y = where_black2[c][0]
-			x = where_black2[c][1]
-
-
-	# count = []
-	# for i in range(len(y)):
-	# 	tmp = 0
-	# 	for j in range(y[i], y[i] + blocksize + 1):
-	# 		for k in range(x[i], x[i] + blocksize + 1):
-	# 			if (mask[(blkIndexI):(blkIndexI + blocksize), (blkIndexJ):(blkIndexJ + blocksize)]==1).any():  # 마스크 안에 들어갈 경우
-	# 				if (texture[j, k] >= 0.7).all():
-	# 					tmp += 1
-	# 			else:
-	# 				if (texture[j, k] < 0.3).all():
-	# 					tmp += 1
-	# 	count.append(tmp)
-	#
-	# c = count.index(max(count))
-
-	# #######
-	# count = []
-	# for i in range(len(y)):
-	# 	tmp = 0
-	# 	for j in range(y[i], y[i] + blocksize + 1):
-	# 		for k in range(x[i], x[i] + blocksize + 1):
-	# 			if (texture[j, k] >= 0.5).all():
-	# 				tmp += 1
-	# 	count.append(tmp)
-	#
-	# if (mask[(blkIndexI):(blkIndexI + blocksize), (blkIndexJ):(blkIndexJ + blocksize)]==1).any():
-	# 	c = count.index(max(count))
-	# else:
-	# 	c = count.index(min(count))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
-
-	# y, x = y[c], x[c]  # 허용오차 안의 해당 에러중 랜덤하게 뽑음
-
-	# plt.imshow(texture[y:y+blocksize, x:x+blocksize])  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-	# plt.show()
-
-	return texture[y:y+blocksize, x:x+blocksize]	# 텍스쳐에서 해당 블록 return
+	return img8[r][y:y + blocksize, x:x + blocksize]  # 텍스쳐에서 해당 블록 return
 
 
 # tan 추가 합성
-def t_findPatchVertical(refBlock, texture, blocksize, overlap, tolerance, mask, blkIdx, where_white, where_black):
+def t_findPatchVertical(refBlock, img8, img8_mask, blocksize, overlap, tolerance, tan_mask, blkIdx, where_white, where_black, where_mid):
 	'''
 	Find best vertical match from the texture
 	사용: findPatchVertical(refBlock, image, blocksize, overlap, tolerance)
 	'''
-	H, W = texture.shape[:2]	# 튜플 압축 풀기 -> 해당 texture 의 rows, columns  값 추출
-								# openCV 경우 -> (rows, columns, channels) 튜플 보유
-	errMat = np.zeros((H-blocksize, W-blocksize)) + inf	# np.zeros : 0으로 채워진 array 생성 / [[W-blocksize 만큼]*H-blocksize만큼] 0으로된 2차원 배열 생성
+	H, W = img8[0].shape[:2]  # 튜플 압축 풀기 -> 해당 texture 의 rows, columns  값 추출
+	errMat = []
 
 	for i, j in product(range(H-blocksize), range(W-blocksize)):	# product : 중복 순열 , 데이터를 뽑아 일렬로 나열하는 모든 경우의 수 / range : 0~해당 값까지
 																	# [0,1,2, ... ,H-blocksize] [0,1,2, ... , W-blocksize] => (0,0),(0,1)..(0,W-blocksize),(1,0),...,(H-blocksize,W-blocksize)
-		rmsVal = ((texture[i:i+overlap, j:j+blocksize] - refBlock[-overlap:, :])**2).mean()	# (이웃 블록의 오버랩 부분 - 각 블록의 오버랩 부분) 제곱 의 평균
+		for r in range(len(img8)):
+			if (img8_mask[r][i:i + blocksize, j:j + blocksize] == 1).all():  # 회전 이미지의 이미지 유효값에서의 블록인 경우 만
+				rmsVal = ((img8[r][i:i+overlap, j:j+blocksize] - refBlock[-overlap:, :]) ** 2).mean()  # (이웃 블록의 오버랩 부분 - 각 블록의 오버랩 부분) 제곱 의 평균
+				if rmsVal > 0:
+					errMat.append([i, j, r, rmsVal])  # 텍스쳐 크기에서 블록사이즈만큼 한줄 작아진 배열에 대입
 
-		if rmsVal > 0:
-			errMat[i, j] = rmsVal	# 텍스쳐 크기에서 블록사이즈만큼 한줄 작아진 배열에 대입
+	y, x, r = 0, 0, 0
+	if (tan_mask[(blkIdx):(blkIdx + blocksize), :blocksize] == 1).any():  # 마스크 1 안에 들어갈 경우
+		errWhite = []
+		for ii in range(len(errMat)):
+			for jj in range(len(where_white)):
+				if (errMat[ii][0] == where_white[jj][0]) and (errMat[ii][1] == where_white[jj][1]):
+					errWhite.append(errMat[ii])
 
-	#minVal = np.min(errMat)	# 에러범위 값 중 가장 작은 것
+		errWhite.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
 
-	y = 0
-	x = 0
+		errIndex = []
+		errIndex.append(errWhite[:5])  # 앞에 5개
+		errIndex = sum(errIndex, [])  # [] 한꺼풀 벗겨주기
 
-	if (mask[(blkIdx):(blkIdx + blocksize), :blocksize]==1).any():  # 마스크 안에 들어갈 경우
+		while (True):
+			c = np.random.randint(
+				len(errIndex))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
+			y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
+			if (img8_mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
+				break
 
-		minVal = 1000
-		c = 0
-		for ii in range(len(where_white)):
-			if errMat[where_white[ii][0], where_white[ii][1]] < minVal:
-				minVal = errMat[where_white[ii][0], where_white[ii][1]]
-				c = ii
+	else:  # 마스크 0 밖 부분
 
-		where_white2 = []
-		for k in range(len(where_white)):  # foam data 일정이상 하얀부분인 인덱스 중
-			if errMat[where_white[k][0], where_white[k][1]] < ((1.0 + tolerance) * (minVal)):  # err가 허용오차 값 이하일때의 인덱스 따로 빼둠
-				where_white2.append(where_white[k])
-		if len(where_white2) == 0:  # 하얀부분의 해당위치의 err가 허용오차 값 이하인 블록이 존재하지 않을 때
-			for k in range(len(where_white)):  # foam data 일정이상 하얀부분인 인덱스 중
-				if errMat[where_white[k][0], where_white[k][1]] < (1.0 + 0.3) * (minVal):  # 허용 오차 늘려서 에러 다시 구함
-					where_white2.append(where_white[k])
-			if len(where_white2)==0:
-				for k in range(len(where_white)):  # foam data 일정이상 하얀부분인 인덱스 중
-					where_white2.append(where_white[k])
+		errBlack = []
+		for ii in range(len(errMat)):
+			for jj in range(len(where_black)):
+				if (errMat[ii][0] == where_black[jj][0]) and (errMat[ii][1] == where_black[jj][1]):
+					errBlack.append(errMat[ii])
 
-			c = np.random.randint(len(where_white2))
-			y = where_white2[c][0]
-			x = where_white2[c][1]
+		errBlack.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
 
-			# minerr = 1000
-			# c = 0
-			# for ii in range(len(where_white)):
-			# 	if errMat[where_white[ii][0], where_white[ii][1]] < minerr:
-			# 		minerr = errMat[where_white[ii][0], where_white[ii][1]]
-			# 		c = ii
-			# print("final c : {}".format(c))
-			# y = where_white[c][0]
-			# x = where_white[c][1]
-		else:	# 하얀부분의 해당위치의 err가 허용오차 값 이하인 블록이 존재할 때  -> 랜덤하게
-			c = np.random.randint(len(where_white2))
-			y = where_white2[c][0]
-			x = where_white2[c][1]
-	else:  # 마스크 밖 부분
+		errIndex = []
+		errIndex.append(errBlack[:5])  # 앞에 5개
+		errIndex = sum(errIndex, [])  # [] 한꺼풀 벗겨주기
 
-		minVal = 1000
-		c = 0
-		for ii in range(len(where_black)):
-			if errMat[where_black[ii][0], where_black[ii][1]] < minVal:
-				minVal = errMat[where_black[ii][0], where_black[ii][1]]
-				c = ii
+		while (True):
+			c = np.random.randint(
+				len(errIndex))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
+			y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
+			if (img8_mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
+				break
 
-		where_black2 = []
-		for k in range(len(where_black)):  # foam data 일정이상 검은부분인 인덱스 중
-			if errMat[where_black[k][0], where_black[k][1]] < (1.0 + tolerance) * (minVal):  # err가 허용오차 값 이하일때의 인덱스 따로 빼둠
-				where_black2.append(where_black[k])
-		if len(where_black2) == 0:  # 검은부분의 해당위치의 err가 허용오차 값 이하인 블록이 존재하지 않을 때
-			for k in range(len(where_black)):  # foam data 일정이상 하얀부분인 인덱스 중
-				if errMat[where_black[k][0], where_black[k][1]] < (1.0 + 0.5) * (minVal):  # 허용 오차 늘려서 에러 다시 구함
-					where_black2.append(where_black[k])
-			if len(where_black2) == 0:
-				for k in range(len(where_black)):  # foam data 일정이상 검은부분인 인덱스 중
-					where_black2.append(where_black[k])
-
-			c = np.random.randint(len(where_black2))
-			y = where_black2[c][0]
-			x = where_black2[c][1]
-
-			# minerr = 100
-			# c = 0
-			# for ii in range(len(where_black)):
-			# 	if errMat[where_black[ii][0], where_black[ii][1]] < minerr:
-			# 		minerr = errMat[where_black[ii][0], where_black[ii][1]]
-			# 		c = ii
-			#
-			# y = where_black[c][0]
-			# x = where_black[c][1]
-		else:	# 검은부분의 해당위치의 err가 허용오차 값 이하인 블록이 존재할때 -> 랜덤하게
-			c = np.random.randint(len(where_black2))
-			y = where_black2[c][0]
-			x = where_black2[c][1]
-
-	# y, x = np.where(errMat < (1.0 + tolerance)*(minVal))	# np.where: 조건에 맞는 위치 인덱스 찾기 / 해당 허용오차보다 작은 E고름
-	# 														# y : [뽑힌 원소 각각 행 어디인지]
-	# 														# x : [뽑힌 원소 각각 열 어디인지] - (y,x) 둘이 이어서 위치 찾기
-	#
-	# count = []
-	# for i in range(len(y)):
-	# 	tmp = 0
-	# 	for j in range(y[i], y[i] + blocksize + 1):
-	# 		for k in range(x[i], x[i] + blocksize + 1):
-	# 			if (mask[(blkIdx):(blkIdx + blocksize), :blocksize]==1).any():  # 마스크 안에 들어갈 경우
-	# 				if (texture[j, k] >= 0.7).all():
-	# 					tmp += 1
-	# 			else:
-	# 				if (texture[j, k] < 0.3).all():
-	# 					tmp += 1
-	# 	count.append(tmp)
-	#
-	# c = count.index(max(count))
-
-	# ######
-	# count = []
-	# for i in range(len(y)):
-	# 	tmp = 0
-	# 	for j in range(y[i], y[i] + blocksize + 1):
-	# 		for k in range(x[i], x[i] + blocksize + 1):
-	# 			if (texture[j, k] >= 0.5).all():
-	# 				tmp += 1
-	# 	count.append(tmp)
-	#
-	# if (mask[(blkIdx):(blkIdx + blocksize), :blocksize]==1).any():
-	# 	c = count.index(max(count))
-	# 	print("11")
-	# else:
-	# 	c = count.index(min(count))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
-	# 	print("22")
-
-	# y, x = y[c], x[c]  # 허용오차 안의 해당 에러중 랜덤하게 뽑음
-
-	# plt.imshow(texture[y:y+blocksize, x:x+blocksize])  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-	# plt.show()
-	return texture[y:y+blocksize, x:x+blocksize]	# 텍스쳐에서 해당 블록 return
+	return img8[r][y:y + blocksize, x:x + blocksize]  # 텍스쳐에서 해당 블록 return
 
 ############################
 
@@ -736,6 +758,12 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 	# [(H기준 : nH(들어가는 블록개수) * (오버랩 뺀 블록실제사이즈) + 마지막에 오버랩 안되므로 블록 하나 더 사이즈) , (W기준 동일) , 색상] => 0으로 초기화
 	# Starting index and block
 	H, W = image.shape[:2]
+
+	pre_img8 = Pre_RotateExImg(image)  # pre_img8 : [ [rotated_seta , mask] , [rotated_seta , mask] , .. ]
+	# => shape : (8, 2, h, w, 3)
+	tmp_img8 = list(zip(*pre_img8))  # [ [rotated_seta 끼리 ] , [mask 끼리] ] 로 형태 변환
+	img8 = tmp_img8[0]
+	img8_mask = tmp_img8[1]
 
 	# # 첫 블록 유의미하게 랜덤값 #################
 	# while True:
@@ -756,7 +784,7 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 
 	# tan 직선에 대한 mask ############
 	a, b = textureMap.shape[:2]	# a = h, b = w
-	c, d = H//2, W//2
+	c, d = a//2, b//2
 	tan_mask = np.zeros((a,b))
 
 	angle = 130	# 주어진 각도 - 회전된 직선 영역을 위하여
@@ -776,24 +804,33 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 	flagj = 0
 
 	tmpj = 0
-	for y in range(a):
+	for y in range(a):	# h
 		t = 0
-		for x in range(b):
-			if is_90 == True:
+		for x in range(b):	# w
+			if is_90 == True:	# 각도 90도일 경우 특수 : x = d 꼴 / 나머지 : y = ~ 꼴
 				tan_line = d
+
+				if tan_line-30<=x and x<=tan_line+30:	# 기울어진 직선에서 얼만큼 두께를 줄 것인지
+					tan_mask[y,x] = 1
+					t+=1
+					textureMap[y,x]=(255,0,0)
+				elif tan_line-40<=x and x<=tan_line+40:
+					tan_mask[y,x] = 2
+					t+=1
+					textureMap[y,x]=(0,255,0)
+
 			else:
-				tan_line = (a-1) - (math.ceil(slope * (x - d)) + c)	# 정해진 각도를 기울기로 갖는 이미지 상 직선
+				tan_line = (a-1) - (math.ceil(slope * (x - d)) + c )	# 정해진 각도를 기울기로 갖는 이미지 상 직선
 
-			if tan_line-30<=y and y<=tan_line+30:	# 기울어진 직선에서 얼만큼 두께를 줄 것인지
-				tan_mask[y,x] = 1
-				tmpj = x
-				t+=1
-				textureMap[y,x]=(255,0,0)
+				if tan_line-30<=y and y<=tan_line+30:	# 기울어진 직선에서 얼만큼 두께를 줄 것인지
+					tan_mask[y,x] = 1
+					t+=1
+					textureMap[y,x]=(255,0,0)
+				elif tan_line-40<=y and y<=tan_line+40:	# 자연스러운 분포를 위해 겉에 한겹 더
+					tan_mask[y,x] = 2
+					t+=1
+					textureMap[y,x]=(0,255,0)
 
-				if flag1 == 0:
-					flag1 = 1
-					flagi = y
-					flagj = x
 		# if t==0:	# for 문  y -> x 순으로 확인할 때 tan_line 이 짝수가 나오는 식이면 y 가 홀수일때 조건 만족하는 x를 찾을 수 없기 때문에 이전값을 저장했다가 그대로 씀
 		# 	tan_mask[y,tmpj] = 1
 		# 	textureMap[y, tmpj] = (255, 0, 0)
@@ -811,18 +848,23 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 	######################
 
 	where_white = []
+	where_mid = []
 	where_black = []
 
-	for i in range(0, H-blocksize, blocksize):
-		for j in range(0,W-blocksize, blocksize):
+	for i in range(0, H-blocksize):
+		for j in range(0,W-blocksize):
 			count_black = 0
+			# 한 블록 당 검은 부분 얼만큼?
 			for si in range(i, i + blocksize):
 				for sj in range(j, j + blocksize):
 					if (image[si, sj] == [0, 0, 0]).all():
 						count_black += 1
-			if count_black < (blocksize * blocksize * (1 / 2)):
+			# 검은 부분의 정도에 따라 나누기
+			if count_black <= (blocksize * blocksize * (1 / 3)):
 				where_white.append([i,j])
-			elif count_black > (blocksize * blocksize * (1 / 2)):
+			elif count_black <= (blocksize * blocksize * (1 / 2)):
+				where_mid.append([i, j])
+			elif count_black > (blocksize * blocksize * (2 / 3)):
 				where_black.append([i,j])
 
 	################################
@@ -837,7 +879,7 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 		# blkIdx = block index to put in
 		# blkIdx = 블록에서 오버랩 되는 부분 시작점 인덱스
 		refBlock = textureMap[:blocksize, (blkIdx-blocksize+overlap):(blkIdx+overlap)]	#texturemap 의 한줄제외 모든 행에 대하여 열단위로 블록 한 칸만큼 계속 이동하면서 대입
-		patchBlock = t_findPatchHorizontal(refBlock, image, blocksize, overlap, tolerance, tan_mask, blkIdx, where_white, where_black)	# 미리 만든 패치 찾는 함수
+		patchBlock = t_findPatchHorizontal(refBlock, img8, img8_mask, blocksize, overlap, tolerance, tan_mask, blkIdx, where_white, where_black, where_mid)	# 미리 만든 패치 찾는 함수
 		minCutPatch = getMinCutPatchHorizontal(refBlock, patchBlock, blocksize, overlap)	# 미리 만든 최소 경로 찾는 함수
 		textureMap[:blocksize, (blkIdx):(blkIdx+blocksize)] = minCutPatch	# 오버랩부분 경계선 최소경로로 자름
 	print("{} out of {} rows complete...".format(1, nH+1))
@@ -853,7 +895,7 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 		# blkIdx = block index to put in
 		# blkIdx = 블록에서 오버랩 되는 부분 시작점 인덱스
 		refBlock = textureMap[(blkIdx-blocksize+overlap):(blkIdx+overlap), :blocksize]	#texturemap 의 한줄제외 모든 열에 대하여 행단위로 블록 한 칸만큼 계속 이동하면서 대입
-		patchBlock = t_findPatchVertical(refBlock, image, blocksize, overlap, tolerance, tan_mask, blkIdx, where_white, where_black)	# 미리 만든 패치 찾는 함수
+		patchBlock = t_findPatchVertical(refBlock, img8, img8_mask, blocksize, overlap, tolerance, tan_mask, blkIdx, where_white, where_black, where_mid)	# 미리 만든 패치 찾는 함수
 		minCutPatch = getMinCutPatchVertical(refBlock, patchBlock, blocksize, overlap)	# 미리 만든 최소 경로 찾는 함수
 		textureMap[(blkIdx):(blkIdx+blocksize), :blocksize] = minCutPatch	# 오버랩부분 경계선 최소경로로 자름
 
@@ -867,7 +909,7 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 			refBlockLeft = textureMap[(blkIndexI):(blkIndexI+blocksize), (blkIndexJ-blocksize+overlap):(blkIndexJ+overlap)]
 			refBlockTop  = textureMap[(blkIndexI-blocksize+overlap):(blkIndexI+overlap), (blkIndexJ):(blkIndexJ+blocksize)]
 
-			patchBlock = t_findPatchBoth(refBlockLeft, refBlockTop, image, blocksize, overlap, tolerance, tan_mask, blkIndexI, blkIndexJ, where_white, where_black)
+			patchBlock = t_findPatchBoth(refBlockLeft, refBlockTop, img8, img8_mask, blocksize, overlap, tolerance, tan_mask, blkIndexI, blkIndexJ, where_white, where_black, where_mid)
 			minCutPatch = getMinCutPatchBoth(refBlockLeft, refBlockTop, patchBlock, blocksize, overlap)
 
 			textureMap[(blkIndexI):(blkIndexI+blocksize), (blkIndexJ):(blkIndexJ+blocksize)] = minCutPatch
@@ -944,11 +986,6 @@ def r_findPatchBoth(refBlockLeft, refBlockTop, texture, blocksize, overlap, tole
 		yy, xx = y[c], x[c]  # 허용오차 안의 해당 에러 중 랜덤하게 뽑음
 		if (mask[yy:yy + blocksize, xx:xx + blocksize] == 1).all():
 			break
-
-	# if len(y)<2:
-	# 	print("확인 y : {}".format(y))
-	# 	print("확인 x : {}".format(x))
-	# 	print("확인 c : {}".format(c))
 
 	return texture[yy:yy+blocksize, xx:xx+blocksize]	# 텍스쳐에서 해당 블록 return
 
@@ -1062,203 +1099,6 @@ def r_generateTextureMap(image, blocksize, overlap, y, x, tolerance, mask):	# �
 #######################
 
 # 추가##################
-# 전처리 : 1. 예제 이미지의 전처리
-def Pre_RotateExImg(image, blocksize, overlap, tolerance):  # 방향성 더해주기 위한 내가만든 함수
-	print(">>Pre_roatateExImg")
-	# 사용: generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
-
-	####try################################################
-	# 이미지의 크기를 잡고 이미지의 중심을 계산합니다.
-	(h, w) = image.shape[:2]
-	(cX, cY) = (w // 2, h // 2)
-	# is_toroidal = []
-
-	img8 = []
-
-	for i in range(1, 9):
-		imax = 8
-		r_seta = i / imax * 360
-
-		# # 90도 배수이면 toroidal = 1
-		# if (r_seta % 90 == 0):
-		# 	is_toroidal.append(1)
-		# else:
-		# 	is_toroidal.append(0)
-
-		# 이미지의 중심을 중심으로 이미지를 r_seta도 회전합니다.
-		M = cv2.getRotationMatrix2D((cX, cY), r_seta, 1.0)	# cv2.getRotationMatrix2D(회전중심좌표(x,y 튜플), 회전각도, 스케일)
-		rotated_seta = cv2.warpAffine(image, M, (h, w))	# cv2.warpAffine(src 원본이미지, M 아핀 맵 행렬, dsize 출력 이미지 크기) : 회전 변환을 계산
-
-		# 준비된 합성된 예제 이미지도 같이 회전시킴
-		#rotated_exImg = cv2.warpAffine(exImg, M, (w, h))
-
-		# ex = generateTextureMap(rotated_seta, blocksize, overlap, h, w, tolerance)
-		# plt.imshow(ex)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-		# plt.show()
-
-		# # 0,0,0 : 검은 부분일 경우
-		# for h_rimg in range(rotated_seta.shape[0]):
-		# 	for w_rimg in range(rotated_seta.shape[1]):
-		# 		if np.all(rotated_seta[h_rimg, w_rimg] == 0):
-		# 			if is_toroidal[i - 1] == 1:  # toroidal : 타일 로 대체
-		# 				rotated_seta[h_rimg, w_rimg] = image[h_rimg, w_rimg]
-		# 			elif is_toroidal[i - 1] == 0:  # non-torodial : 미러링 으로 대체
-		# 				rotated_seta[h_rimg, w_rimg] = image[h - 1 - h_rimg, w - 1 - w_rimg]
-		#
-		# plt.imshow(rotated_seta)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-		# plt.show()
-
-		# # 검은 부분 : tan 로 계산 경우
-		# half_seta = (r_seta%90)/2
-		# tan_seta = math.tan(half_seta)
-		# L = w/2
-		# print("half:{} , tan: {}, L:{}".format(half_seta,tan_seta,L))
-		# line_1 = int((tan_seta+1)*L)
-		# line_2 = int((((1-tan_seta)/(1+tan_seta))-tan_seta)*L)
-		# line_3 = int((1-((1-tan_seta)/(1+tan_seta)))*L)
-		# line_4 = int(L*(1-math.tan(r_seta)*(1/2)*(tan_seta+1)))
-		#
-		# print("1:{} , 2: {}, 4:{}".format(line_1,line_2,line_4))
-		#
-		# tmp = line_1
-		# for row in range(20):
-		# 	for col in range(20):
-		# 		rotated_seta[row,col] = [255,0,0]
-		# 	tmp -= 1
-
-		# 검은 부분 : sin cos  로 계산 경우
-		L = w
-		sin_seta = math.sin(r_seta%90)
-		cos_seta = math.cos(r_seta%90)
-		t = L/(sin_seta+cos_seta+1)
-
-		line_1 = ceil(t * sin_seta)	# 넉넉하게 라인 길이를 잡아줘야 하므로 올림으로 하였다.
-		line_2 = ceil(t)
-		line_3 = ceil(t * cos_seta)
-		# print("sin:{} , cos: {}, t:{}".format(sin_seta,cos_seta,t))
-		# print("1:{} , 2: {}, 3:{}".format(line_1, line_2, line_3))
-		# print("h: {}, W: {}".format(h,w))
-
-		# #기존 확인용###############
-		# fill_black_img = rotated_seta.copy()
-		# # 왼쪽 위 부분
-		# tmp = line_1
-		# for y in range(line_1):	# 원래대로라면 line_3 이 들어가야 하지만 검은 삼각형이 w,h가 같지않으므로 위에서부터 1칸씩 빼면서 내려가면 깔끔하게 삼각형이 안채워져서 원본이 정사각형이라는 가정 하(이것도 상관없는것같긴한데..)에 깔끔한 검은삼각형을 채우기 위하여 w,h가 같다고 가정하고 채워주기 위해 w=h 로 하였다..
-		# 	for x in range(tmp):
-		# 		fill_black_img[y, x] = [1, 0, 0]
-		# 	tmp -= 1
-		# # 왼쪽 아래 부분
-		# tmp = 1
-		# for y in range(L-line_1,L):
-		# 	for x in range(tmp):
-		# 		fill_black_img[y, x] = [1, 0, 0]
-		# 	tmp += 1
-		# # 오른쪽 위 부분
-		# tmp = line_1
-		# for y in range(line_1):
-		# 	for x in range(L-tmp,L):
-		# 		fill_black_img[y, x] = [1, 0, 0]
-		# 	tmp -= 1
-		# # 오른쪽 아래 부분
-		# tmp = 0
-		# for y in range(L-line_1,L):  # 원래대로라면 line_3 이 들어가야 하지만 검은 삼각형이 w,h가 같지않으므로 위에서부터 1칸씩 빼면서 내려가면 깔끔하게 삼각형이 안채워져서 원본이 정사각형이라는 가정 하(이것도 상관없는것같긴한데..)에 깔끔한 검은삼각형을 채우기 위하여 w,h가 같다고 가정하고 채워주기 위해 w=h 로 하였다..
-		# 	for x in range(L-tmp,L):
-		# 		fill_black_img[y, x] = [1, 0, 0]
-		# 	tmp += 1
-		# pre_img = cv2.addWeighted(rotated_seta, 0.5, fill_black_img, 0.5, 0)
-		# #############################
-
-## 수정1
-		mask_black = np.ones((h, w, 3))
-		black_h = line_1	# 검은 삼각형 높이부분 : tsin@
-		black_w	= line_1	# 검은 삼각형 밑변부분 : tcos@
-
-		# rotation -> 검은 삼각형 부분 => 마스크 만들기
-		# 왼쪽 위 부분
-		tmp = black_h
-		for y in range(black_w):	# 원래대로라면 line_3 이 들어가야 하지만 검은 삼각형이 w,h가 같지않으므로 위에서부터 1칸씩 빼면서 내려가면 깔끔하게 삼각형이 안채워져서 원본이 정사각형이라는 가정 하(이것도 상관없는것같긴한데..)에 깔끔한 검은삼각형을 채우기 위하여 w,h가 같다고 가정하고 채워주기 위해 w=h 로 하였다..
-			for x in range(tmp):
-				mask_black[y, x] = 0
-			tmp -= 1
-		# 왼쪽 아래 부분
-		tmp = 1
-		for y in range(L-black_h,L):
-			for x in range(tmp):
-				mask_black[y, x] = 0
-			tmp += 1
-		# 오른쪽 위 부분
-		tmp = black_w
-		for y in range(black_h):
-			for x in range(L-tmp,L):
-				mask_black[y, x] = 0
-			tmp -= 1
-		# 오른쪽 아래 부분
-		tmp = 0
-		for y in range(L-black_h,L):  # 원래대로라면 line_3 이 들어가야 하지만 검은 삼각형이 w,h가 같지않으므로 위에서부터 1칸씩 빼면서 내려가면 깔끔하게 삼각형이 안채워져서 원본이 정사각형이라는 가정 하(이것도 상관없는것같긴한데..)에 깔끔한 검은삼각형을 채우기 위하여 w,h가 같다고 가정하고 채워주기 위해 w=h 로 하였다..
-			for x in range(L-tmp,L):
-				mask_black[y, x] = 0
-			tmp += 1
-
-		# rotation -> 검은 삼각형 부분 => 합성 #########
-		# r_texture_black = r_generateTextureMap(rotated_seta, blocksize, overlap, h, w, tolerance, mask_black)	# 방향성 고려해서 새로 합성한 후보이미지
-
-		# 어차피 회전 예제 이미지의 방향값을 가져오는 것이 목적이므로 더 자연스러운 새로만든 텍스쳐를 사용한다.
-		# r_texture_black1 = r_texture_black[:h, :w, :]	# r_generateTextureMap () 함수 시 블록 사이즈에 나눠떨어지게 크기가 생성되므로 h,w 라도 좀 더 크게 잡힌다. 따라서 크기가 달라 아래에서 연산이 안되므로 조절해준다.
-		# r_texture = rotated_seta * mask_black + r_texture_black1 * (1-mask_black)	# 기존 이미지 + 방향성 합성 이미지 검은부분용
-
-		# plt.imshow(r_texture_black)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-		# plt.show()
-
-		# img8.append(r_texture_black)
-		img8.append([rotated_seta,mask_black])
-
-		# # Save
-		# pre_img = (255 * r_texture_black).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
-		# pre_img = cv2.cvtColor(pre_img, cv2.COLOR_RGB2BGR)
-		#
-		# cv2.imwrite("8img_" + str(i) + ".png", pre_img)
-		#
-		# pre_img1 = (255 * r_texture).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
-		# pre_img1 = cv2.cvtColor(pre_img1, cv2.COLOR_RGB2BGR)
-		#
-		# cv2.imwrite("10img_" + str(i) + ".png", pre_img1)
-
-	return img8
-
-# 전처리 : 2. 합성 대상 이미지 S의 재정의
-def Pre_AddRotateIndex(img8):
-	for i in range(len(img8)):
-		img = img8[i]
-		h = img.shape[0]
-		w = img.shape[1]
-
-		addArray = np.full((h,w,1), i)
-		new = np.concatenate([img, addArray], axis=2)
-	return new
-
-def Pre_FindNeighbor(img8,ref,size):
-	NEi = ref
-	half = int(size//2)
-	for i in range(len(img8)):
-		img = img8[i]
-		h = img.shape[0]
-		w = img.shape[1]
-		tmp_err=100
-		tmp_p=[]
-		tmp_j=0
-
-		for y in range(half-1,h-half+1):
-			for x in range(half-1,w-half+1):
-				# 예외처리 - 안해주면 통째로 [] 로 처리돼서 error 계산시 NaN 으로 나옴 (숫자 아니라는 뜻)
-				NEj = img[y-(half-1):y+half+1,x-(half-1):x+half+1]
-
-				err = ((NEj[:,:] - NEi[:,:]) ** 2).mean()	# error 를 어떻게 구하는지에 대한 언급이 없어서 기존 error 구하는 공식 가져옴
-				if err<tmp_err:
-					tmp_err = err
-					tmp_p = NEj
-					tmp_j = i
-
-	return tmp_p
 
 def fin_findPatchHorizontal(refBlock, img8, blocksize, overlap, tolerance, mask):	# tolerance : 허용오차
 	'''
@@ -1366,13 +1206,10 @@ def fin_findPatchVertical(refBlock, img8, blocksize, overlap, tolerance, mask):
 
 	errIndex = []
 	errIndex.append(errMat[:5])
-	errIndex = sum(errIndex, [])
+	errIndex = sum(errIndex, [])	# errIndex 에서 [] 한꺼풀 벗겨줌
 	# for i in range(len(errMat)):
 	# 	if errMat[i][3] < (1.0 + tolerance) * (minVal):
 	# 		errIndex.append(errMat[i])
-	# print("<<>>><<<<<<>>>")
-	# print("시작!")
-	# print("errMAt:{}".format(len(errIndex)))
 
 	while (True):
 		c = np.random.randint(len(errIndex))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
@@ -1394,9 +1231,9 @@ def fin_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	# 
 	# [(H기준 : nH(들어가는 블록개수) * (오버랩 뺀 블록실제사이즈) + 마지막에 오버랩 안되므로 블록 하나 더 사이즈) , (W기준 동일) , 색상] => 0으로 초기화
 	# Starting index and block
 	H, W = image.shape[:2]
-	pre_img8 = Pre_RotateExImg(image, blocksize, overlap, tolerance)
-	#pre_img8 = Pre_AddRotateIndex(pre_img8)
-	tmp_img8 = list(zip(*pre_img8))
+	pre_img8 = Pre_RotateExImg(image, blocksize, overlap, tolerance)	# pre_img8 : [ [rotated_seta , mask] , [rotated_seta , mask] , .. ]
+																		# => shape : (8, 2, h, w, 3)
+	tmp_img8 = list(zip(*pre_img8))	# [ [rotated_seta 끼리 ] , [mask 끼리] ] 로 형태 변환
 	img8 = tmp_img8[0]
 	mask = tmp_img8[1]
 
