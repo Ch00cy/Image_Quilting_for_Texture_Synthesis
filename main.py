@@ -19,7 +19,7 @@ parser = argparse.ArgumentParser()	# ArgumentParser 객체
 parser.add_argument("-i", "--image_path", required=True, type=str, help="path of image you want to quilt")	# 이미지 경로 - 필수
 parser.add_argument("-b", "--block_size", type=int, default=20, help="block size in pixels")	# 블록 사이즈 (20픽셀)
 parser.add_argument("-o", "--overlap", type=int, default=1.0/6, help="overlap size in pixels (defaults to 1/6th of block size)")	# 오버랩 부분 (1/6 픽셀)
-parser.add_argument("-s", "--scale", type=float, default=4, help="Scaling w.r.t. to image size")	# 결과 이미지 사이즈 얼마나 배로 늘릴것인가 (4)
+parser.add_argument("-s", "--scale", type=float, default=1, help="Scaling w.r.t. to image size")	# 결과 이미지 사이즈 얼마나 배로 늘릴것인가 (4)
 parser.add_argument("-n", "--num_outputs", type=int, default=1, help="number of output textures required")	# 결과 텍스쳐 몇개 생성? (1)
 parser.add_argument("-f", "--output_file", type=str, default="output.png", help="output file name")	# 결과 어디에 저장? (output.png)
 parser.add_argument("-p", "--plot", type=int, default=1, help="Show plots")	# plot 보여줄 여부 (1)
@@ -63,11 +63,12 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 
 	H, W = image.shape[:2]	# 조정된 이미지 사이즈로 H, W 변경
 	outH, outW = int(scale * H), int(scale * W)  # 아웃풋 결과 : 이미지의 scale(4) 배로 키워줌
+	print("outH : {}".format(outH))
 
 	for i in range(args.num_outputs):	# 결과 개수 만큼 반복
 
 		# 수정
-		textureMap = foam_generateTextureMap(image, block_size, overlap, H, W, args.tolerance)
+		textureMap = foam_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
 		# textureMap = fin_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
 
 		# textureMaps = Pre_RotateExImg(image, block_size, overlap, outH, outW, args.tolerance)
@@ -82,22 +83,22 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 
 		# textureMap1 = generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)	# generate.py -> generateTextureMap(image, blocksize, overlap, outH, outW, tolerance) 함수 실행
 
-		# for i in range(3):
+		# for i in range(1):
 		# 	textureMap = fin_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
 		# 	textureMap = (255 * textureMap).astype(np.uint8)
 		# 	textureMap = cv2.cvtColor(textureMap, cv2.COLOR_RGB2BGR)
 		# 	cv2.imwrite("Output8rotate_"+str(i+1)+"_.png", textureMap)
 
 		# save test
-		# plt.imshow(textureMap)	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-		# plt.show()	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-		# textureMap = (255 * textureMap).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
-		# textureMap = cv2.cvtColor(textureMap, cv2.COLOR_RGB2BGR)
-		# cv2.imwrite("Output8rotate.png", textureMap)
+		plt.imshow(textureMap)	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+		plt.show()	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+		textureMap = (255 * textureMap).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
+		textureMap = cv2.cvtColor(textureMap, cv2.COLOR_RGB2BGR)
+		cv2.imwrite("OutputFoamData.png", textureMap)
 
 		# plt.imshow(textureMap1)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
 		# plt.show()  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-
+		#
 		# textureMap1 = (255 * textureMap1).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
 		# textureMap1 = cv2.cvtColor(textureMap1, cv2.COLOR_RGB2BGR)
 		# cv2.imwrite("OutputOrigin.png", textureMap1)

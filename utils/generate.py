@@ -491,6 +491,7 @@ def t_findPatchHorizontal(refBlock, img8, img8_mask, blocksize, overlap, toleran
 	Find best horizontal match from the texture
 	사용: findPatchHorizontal(refBlock, image, blocksize, overlap, tolerance)
 	'''
+	print("horizontal")
 	H, W = img8[0].shape[:2]	# 튜플 압축 풀기 -> 해당 texture 의 rows, columns  값 추출
 	errMat =  []
 
@@ -504,6 +505,7 @@ def t_findPatchHorizontal(refBlock, img8, img8_mask, blocksize, overlap, toleran
 
 	y,x,r = 0,0,0
 	if (tan_mask[:blocksize, (blkIdx):(blkIdx + blocksize)] == 1).any():  # 마스크 1 안에 들어갈 경우
+		print("mask white >>>>>")
 		errWhite = []
 		for ii in range(len(errMat)):
 			for jj in range(len(where_white)):
@@ -537,10 +539,9 @@ def t_findPatchHorizontal(refBlock, img8, img8_mask, blocksize, overlap, toleran
 				break
 			else:
 				"print : error : 랜덤하게 뽑은 특정 색깔의 블록이 이미지 회전값에 다 안들어갑니다.."
-	# return img8[r][y:y + blocksize, x:x + blocksize]  # 텍스쳐에서 해당 블록 return
 
 	else:	# 마스크 0 밖 부분
-
+		print("mask black >>>>>")
 		errBlack = []
 		for ii in range(len(errMat)):
 			for jj in range(len(where_black)):
@@ -616,6 +617,9 @@ def t_findPatchHorizontal(refBlock, img8, img8_mask, blocksize, overlap, toleran
 
 	# y, x = y[c], x[c]  # 허용오차 안의 해당 에러 중 랜덤하게 뽑음
 
+	# plt.imshow(img8[r][y:y + blocksize, x:x + blocksize])  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+	# plt.show()
+
 	return img8[r][y:y + blocksize, x:x + blocksize]	# 텍스쳐에서 해당 블록 return
 
 
@@ -625,6 +629,7 @@ def t_findPatchBoth(refBlockLeft, refBlockTop, img8, img8_mask, blocksize, overl
 	Find best horizontal and vertical match from the texture
 	사용: findPatchBoth(refBlockLeft, refBlockTop, image, blocksize, overlap, tolerance)
 	'''
+	print("both")
 	H, W = img8[0].shape[:2]
 	errMat = []
 
@@ -639,6 +644,7 @@ def t_findPatchBoth(refBlockLeft, refBlockTop, img8, img8_mask, blocksize, overl
 					errMat.append([i, j, r, rmsVal])	# 텍스쳐 크기에서 블록사이즈만큼 한줄 작아진 배열에 대입
 
 	if (tan_mask[(blkIndexI):(blkIndexI + blocksize), (blkIndexJ):(blkIndexJ + blocksize)] == 1).any():  # 마스크 1 안에 들어갈 경우
+		print("mask white >>>>>")
 		errWhite = []
 		for ii in range(len(errMat)):
 			for jj in range(len(where_white)):
@@ -659,7 +665,7 @@ def t_findPatchBoth(refBlockLeft, refBlockTop, img8, img8_mask, blocksize, overl
 				break
 
 	else:  # 마스크 0 밖 부분
-
+		print("mask black >>>>>")
 		errBlack = []
 		for ii in range(len(errMat)):
 			for jj in range(len(where_black)):
@@ -688,6 +694,7 @@ def t_findPatchVertical(refBlock, img8, img8_mask, blocksize, overlap, tolerance
 	Find best vertical match from the texture
 	사용: findPatchVertical(refBlock, image, blocksize, overlap, tolerance)
 	'''
+	print("vertical")
 	H, W = img8[0].shape[:2]  # 튜플 압축 풀기 -> 해당 texture 의 rows, columns  값 추출
 	errMat = []
 
@@ -701,6 +708,7 @@ def t_findPatchVertical(refBlock, img8, img8_mask, blocksize, overlap, tolerance
 
 	y, x, r = 0, 0, 0
 	if (tan_mask[(blkIdx):(blkIdx + blocksize), :blocksize] == 1).any():  # 마스크 1 안에 들어갈 경우
+		print("mask white >>>>>")
 		errWhite = []
 		for ii in range(len(errMat)):
 			for jj in range(len(where_white)):
@@ -719,8 +727,26 @@ def t_findPatchVertical(refBlock, img8, img8_mask, blocksize, overlap, tolerance
 			y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
 			if (img8_mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
 				break
-
+	# elif (tan_mask[(blkIdx):(blkIdx + blocksize), :blocksize] == 2).any():  # 마스크 2 안에 들어갈 경우
+	# 	errMid = []
+	# 	for ii in range(len(errMat)):
+	# 		for jj in range(len(where_mid)):
+	# 			if (errMat[ii][0] == where_mid[jj][0]) and (errMat[ii][1] == where_mid[jj][1]):
+	# 				errMid.append(errMat[ii])
+	#
+	# 	errMid.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
+	#
+	# 	errIndex = []
+	# 	errIndex.append(errMid[:5])  # 앞에 5개
+	# 	errIndex = sum(errIndex, [])  # [] 한꺼풀 벗겨주기
+	#
+	# 	while (True):
+	# 		c = np.random.randint(len(errIndex))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
+	# 		y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
+	# 		if (img8_mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
+	# 			break
 	else:  # 마스크 0 밖 부분
+		print("mask black >>>>>")
 
 		errBlack = []
 		for ii in range(len(errMat)):
@@ -787,7 +813,7 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 	c, d = a//2, b//2
 	tan_mask = np.zeros((a,b))
 
-	angle = 130	# 주어진 각도 - 회전된 직선 영역을 위하여
+	angle = 30	# 주어진 각도 - 회전된 직선 영역을 위하여
 	slope = 0	# 회전된 직선영역의 기울기
 	is_90 = False	# flag : 90도인가, 90도일경우에만 직선의 방정식 x= a 꼴이기 때문
 
@@ -860,11 +886,12 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 					if (image[si, sj] == [0, 0, 0]).all():
 						count_black += 1
 			# 검은 부분의 정도에 따라 나누기
+			print("count : {}".format(count_black))
 			if count_black <= (blocksize * blocksize * (1 / 3)):
 				where_white.append([i,j])
-			elif count_black <= (blocksize * blocksize * (1 / 2)):
+			elif count_black <= (blocksize * blocksize * (2 / 3)):
 				where_mid.append([i, j])
-			elif count_black > (blocksize * blocksize * (2 / 3)):
+			elif count_black >= (blocksize * blocksize * (2 / 3)):
 				where_black.append([i,j])
 
 	################################
@@ -920,9 +947,6 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 			# break
 		print("{} out of {} rows complete...".format(i+1, nH+1))
 		# break
-
-	plt.imshow(textureMap)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-	plt.show()
 
 	return textureMap
 #####################
@@ -1231,7 +1255,7 @@ def fin_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	# 
 	# [(H기준 : nH(들어가는 블록개수) * (오버랩 뺀 블록실제사이즈) + 마지막에 오버랩 안되므로 블록 하나 더 사이즈) , (W기준 동일) , 색상] => 0으로 초기화
 	# Starting index and block
 	H, W = image.shape[:2]
-	pre_img8 = Pre_RotateExImg(image, blocksize, overlap, tolerance)	# pre_img8 : [ [rotated_seta , mask] , [rotated_seta , mask] , .. ]
+	pre_img8 = Pre_RotateExImg(image)	# pre_img8 : [ [rotated_seta , mask] , [rotated_seta , mask] , .. ]
 																		# => shape : (8, 2, h, w, 3)
 	tmp_img8 = list(zip(*pre_img8))	# [ [rotated_seta 끼리 ] , [mask 끼리] ] 로 형태 변환
 	img8 = tmp_img8[0]
