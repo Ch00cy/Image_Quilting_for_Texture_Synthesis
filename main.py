@@ -68,7 +68,7 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 	for i in range(args.num_outputs):	# 결과 개수 만큼 반복
 
 		# 수정
-		textureMap = foam_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
+		# textureMap = foam_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
 		# textureMap = fin_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
 
 		# textureMaps = Pre_RotateExImg(image, block_size, overlap, outH, outW, args.tolerance)
@@ -83,18 +83,18 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 
 		# textureMap1 = generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)	# generate.py -> generateTextureMap(image, blocksize, overlap, outH, outW, tolerance) 함수 실행
 
-		# for i in range(1):
-		# 	textureMap = fin_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
-		# 	textureMap = (255 * textureMap).astype(np.uint8)
-		# 	textureMap = cv2.cvtColor(textureMap, cv2.COLOR_RGB2BGR)
-		# 	cv2.imwrite("Output8rotate_"+str(i+1)+"_.png", textureMap)
+		for i in range(2):
+			textureMap = foam_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
+			textureMap = (255 * textureMap).astype(np.uint8)
+			textureMap = cv2.cvtColor(textureMap, cv2.COLOR_RGB2BGR)
+			cv2.imwrite("OutputFoam_"+str(i+1)+"_.png", textureMap)
 
-		# save test
-		plt.imshow(textureMap)	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-		plt.show()	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-		textureMap = (255 * textureMap).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
-		textureMap = cv2.cvtColor(textureMap, cv2.COLOR_RGB2BGR)
-		cv2.imwrite("FinalResult.png", textureMap)
+		# # save test
+		# plt.imshow(textureMap)	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+		# plt.show()	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+		# textureMap = (255 * textureMap).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
+		# textureMap = cv2.cvtColor(textureMap, cv2.COLOR_RGB2BGR)
+		# cv2.imwrite("FinalResult.png", textureMap)
 
 		# plt.imshow(textureMap1)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
 		# plt.show()  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
