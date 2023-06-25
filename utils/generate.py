@@ -540,7 +540,7 @@ def t_findPatchHorizontal(refBlock, img8, img8_mask, blocksize, overlap, toleran
 		errMid = []
 		for ii in range(len(errMat)):
 			for jj in range(len(where_mid)):
-				if (errMat[ii][0] == where_mid[jj][0]) and (errMat[ii][1] == where_mid[jj][1]):
+				if (errMat[ii][0] == where_mid[jj][0]) and (errMat[ii][1] == where_mid[jj][1]) and (errMat[ii][2] == where_white[jj][2]):
 					errMid.append(errMat[ii])
 
 		errMid.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
@@ -558,9 +558,9 @@ def t_findPatchHorizontal(refBlock, img8, img8_mask, blocksize, overlap, toleran
 		errBlack = []
 		for ii in range(len(errMat)):
 			for jj in range(len(where_black)):
-				if (errMat[ii][0] == where_black[jj][0]) and (errMat[ii][1] == where_black[jj][1]):
+				if (errMat[ii][0] == where_black[jj][0]) and (errMat[ii][1] == where_black[jj][1]) and (errMat[ii][2] == where_white[jj][2]):
 					errBlack.append(errMat[ii])
-		print("블랙 : {}".format(errBlack))
+
 		errBlack.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
 
 		errIndex = []
@@ -657,7 +657,7 @@ def t_findPatchBoth(refBlockLeft, refBlockTop, img8, img8_mask, blocksize, overl
 		errWhite = []
 		for ii in range(len(errMat)):
 			for jj in range(len(where_white)):
-				if (errMat[ii][0] == where_white[jj][0]) and (errMat[ii][1] == where_white[jj][1]):
+				if (errMat[ii][0] == where_white[jj][0]) and (errMat[ii][1] == where_white[jj][1]) and (errMat[ii][2] == where_white[jj][2]):
 					errWhite.append(errMat[ii])
 
 		errWhite.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
@@ -676,7 +676,7 @@ def t_findPatchBoth(refBlockLeft, refBlockTop, img8, img8_mask, blocksize, overl
 		errMid = []
 		for ii in range(len(errMat)):
 			for jj in range(len(where_mid)):
-				if (errMat[ii][0] == where_mid[jj][0]) and (errMat[ii][1] == where_mid[jj][1]):
+				if (errMat[ii][0] == where_mid[jj][0]) and (errMat[ii][1] == where_mid[jj][1]) and (errMat[ii][2] == where_white[jj][2]):
 					errMid.append(errMat[ii])
 
 		errMid.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
@@ -694,7 +694,7 @@ def t_findPatchBoth(refBlockLeft, refBlockTop, img8, img8_mask, blocksize, overl
 		errBlack = []
 		for ii in range(len(errMat)):
 			for jj in range(len(where_black)):
-				if (errMat[ii][0] == where_black[jj][0]) and (errMat[ii][1] == where_black[jj][1]):
+				if (errMat[ii][0] == where_black[jj][0]) and (errMat[ii][1] == where_black[jj][1]) and (errMat[ii][2] == where_white[jj][2]):
 					errBlack.append(errMat[ii])
 
 		errBlack.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
@@ -735,7 +735,7 @@ def t_findPatchVertical(refBlock, img8, img8_mask, blocksize, overlap, tolerance
 		errWhite = []
 		for ii in range(len(errMat)):
 			for jj in range(len(where_white)):
-				if (errMat[ii][0] == where_white[jj][0]) and (errMat[ii][1] == where_white[jj][1]):
+				if (errMat[ii][0] == where_white[jj][0]) and (errMat[ii][1] == where_white[jj][1]) and (errMat[ii][2] == where_white[jj][2]):
 					errWhite.append(errMat[ii])
 
 		errWhite.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
@@ -753,7 +753,7 @@ def t_findPatchVertical(refBlock, img8, img8_mask, blocksize, overlap, tolerance
 		errMid = []
 		for ii in range(len(errMat)):
 			for jj in range(len(where_mid)):
-				if (errMat[ii][0] == where_mid[jj][0]) and (errMat[ii][1] == where_mid[jj][1]):
+				if (errMat[ii][0] == where_mid[jj][0]) and (errMat[ii][1] == where_mid[jj][1]) and (errMat[ii][2] == where_white[jj][2]):
 					errMid.append(errMat[ii])
 
 		errMid.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
@@ -772,7 +772,7 @@ def t_findPatchVertical(refBlock, img8, img8_mask, blocksize, overlap, tolerance
 		errBlack = []
 		for ii in range(len(errMat)):
 			for jj in range(len(where_black)):
-				if (errMat[ii][0] == where_black[jj][0]) and (errMat[ii][1] == where_black[jj][1]):
+				if (errMat[ii][0] == where_black[jj][0]) and (errMat[ii][1] == where_black[jj][1]) and (errMat[ii][2] == where_white[jj][2]):
 					errBlack.append(errMat[ii])
 
 		errBlack.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
