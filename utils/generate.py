@@ -507,9 +507,10 @@ def t_findPatchHorizontal(refBlock, img8, img8_mask, blocksize, overlap, toleran
 		errWhite = []
 		for ii in range(len(errMat)):
 			for jj in range(len(where_white)):
-				if(errMat[ii][0] == where_white[jj][0]) and (errMat[ii][1] == where_white[jj][1]):
+				if(errMat[ii][0] == where_white[jj][0]) and (errMat[ii][1] == where_white[jj][1]) and (errMat[ii][2] == where_white[jj][2]):
 					errWhite.append(errMat[ii])
 
+		print("화이트 : {}".format(errWhite))
 		errWhite.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
 
 		errIndex = []
@@ -559,7 +560,7 @@ def t_findPatchHorizontal(refBlock, img8, img8_mask, blocksize, overlap, toleran
 			for jj in range(len(where_black)):
 				if (errMat[ii][0] == where_black[jj][0]) and (errMat[ii][1] == where_black[jj][1]):
 					errBlack.append(errMat[ii])
-
+		print("블랙 : {}".format(errBlack))
 		errBlack.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
 
 		errIndex = []
@@ -833,7 +834,7 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 	c, d = a//2, b//2
 	tan_mask = np.zeros((a,b))
 
-	angle = 130	# 주어진 각도 - 회전된 직선 영역을 위하여
+	angle = 30	# 주어진 각도 - 회전된 직선 영역을 위하여
 	slope = 0	# 회전된 직선영역의 기울기
 	is_90 = False	# flag : 90도인가, 90도일경우에만 직선의 방정식 x= a 꼴이기 때문
 
@@ -860,7 +861,7 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 					tan_mask[y,x] = 1
 					t+=1
 					textureMap[y,x]=(255,0,0)
-				elif tan_line-40<=x and x<=tan_line+40:
+				elif tan_line-50<=x and x<=tan_line+50:
 					tan_mask[y,x] = 2
 					t+=1
 					textureMap[y,x]=(0,255,0)
@@ -881,8 +882,8 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 		# 	tan_mask[y,tmpj] = 1
 		# 	textureMap[y, tmpj] = (255, 0, 0)
 
-	plt.imshow(textureMap)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-	plt.show()
+	# plt.imshow(textureMap)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+	# plt.show()
 	# textureMap[flagi:flagi+blocksize, flagj:flagj+blocksize, :] = startBlock  # 0으로 초기화된 맵에서 첫번째 블록에 랜덤하게 가져온 블록 대입함
 	######################
 
@@ -890,21 +891,22 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 	where_mid = []
 	where_black = []
 
-	for i in range(0, H-blocksize):
-		for j in range(0,W-blocksize):
-			count_black = 0
-			# 한 블록 당 검은 부분 얼만큼?
-			for si in range(i, i + blocksize):
-				for sj in range(j, j + blocksize):
-					if (image[si, sj] == [0, 0, 0]).all():
-						count_black += 1
-			# 검은 부분의 정도에 따라 나누기
-			if count_black <= (blocksize * blocksize * (1 / 3)):
-				where_white.append([i,j])
-			elif count_black <= (blocksize * blocksize * (2 / 3)):
-				where_mid.append([i, j])
-			elif count_black >= (blocksize * blocksize * (2 / 3)):
-				where_black.append([i,j])
+	for r in range(8):
+		for i in range(0, H-blocksize):
+			for j in range(0,W-blocksize):
+				count_black = 0
+				# 한 블록 당 검은 부분 얼만큼?
+				for si in range(i, i + blocksize):
+					for sj in range(j, j + blocksize):
+						if (img8[r][si, sj] == [0, 0, 0]).all():
+							count_black += 1
+				# 검은 부분의 정도에 따라 나누기
+				if count_black <= (blocksize * blocksize * (1 / 3)):
+					where_white.append([i,j,r])
+				elif count_black <= (blocksize * blocksize * (2 / 3)):
+					where_mid.append([i, j,r])
+				elif count_black >= (blocksize * blocksize * (2 / 3)):
+					where_black.append([i,j,r])
 
 	################################
 
@@ -1426,8 +1428,8 @@ def multi_RotateExImg(image, blocksize, overlap, outH, outW, tolerance):  # 방�
 		rImgs.append(pre_img)
 
 		#rImgs.append(fill_black_img)
-		plt.imshow(pre_img)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-		plt.show()
+		# plt.imshow(pre_img)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+		# plt.show()
 		#############################
 
 # # ## 수정1
