@@ -675,7 +675,7 @@ def t_findPatchBoth(refBlockLeft, refBlockTop, img8, img8_mask, blocksize, overl
 		errMid = []
 		for ii in range(len(errMat)):
 			for jj in range(len(where_mid)):
-				if (errMat[ii][:-1] == where_black[jj]):
+				if (errMat[ii][:-1] == where_mid[jj]):
 					errMid.append(errMat[ii])
 
 		errMid.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
@@ -774,7 +774,7 @@ def t_findPatchVertical(refBlock, img8, img8_mask, blocksize, overlap, tolerance
 		for ii in range(len(errMat)):
 			for jj in range(len(where_black)):
 				# if (errMat[ii][0] == where_black[jj][0]) and (errMat[ii][1] == where_black[jj][1]):
-				if (errMat[ii][:-1] == where_white[jj]):
+				if (errMat[ii][:-1] == where_black[jj]):
 					errBlack.append(errMat[ii])
 
 		errBlack.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
@@ -836,7 +836,7 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 	c, d = a//2, b//2
 	tan_mask = np.zeros((a,b))
 
-	angle = 30	# 주어진 각도 - 회전된 직선 영역을 위하여
+	angle = 130	# 주어진 각도 - 회전된 직선 영역을 위하여
 	slope = 0	# 회전된 직선영역의 기울기
 	is_90 = False	# flag : 90도인가, 90도일경우에만 직선의 방정식 x= a 꼴이기 때문
 
