@@ -836,7 +836,7 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 	c, d = a//2, b//2
 	tan_mask = np.zeros((a,b))
 
-	angle = 130	# 주어진 각도 - 회전된 직선 영역을 위하여
+	angle = 80	# 주어진 각도 - 회전된 직선 영역을 위하여
 	slope = 0	# 회전된 직선영역의 기울기
 	is_90 = False	# flag : 90도인가, 90도일경우에만 직선의 방정식 x= a 꼴이기 때문
 

@@ -52,7 +52,7 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 
 	# 수정 - 추가부분
 	# 이미지 사이즈 w,h중 작은 것에 맞춰서 정사각형으로 크기조절
-	if (H < 110 or W < 110):
+	if (H < 90 or W < 90):
 		if H>W:
 			image = cv2.resize(image, (W, W))
 		else:
