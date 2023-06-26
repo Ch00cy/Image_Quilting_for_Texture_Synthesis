@@ -19,7 +19,7 @@ parser = argparse.ArgumentParser()	# ArgumentParser 객체
 parser.add_argument("-i", "--image_path", required=True, type=str, help="path of image you want to quilt")	# 이미지 경로 - 필수
 parser.add_argument("-b", "--block_size", type=int, default=20, help="block size in pixels")	# 블록 사이즈 (20픽셀)
 parser.add_argument("-o", "--overlap", type=int, default=1.0/6, help="overlap size in pixels (defaults to 1/6th of block size)")	# 오버랩 부분 (1/6 픽셀)
-parser.add_argument("-s", "--scale", type=float, default=4, help="Scaling w.r.t. to image size")	# 결과 이미지 사이즈 얼마나 배로 늘릴것인가 (4)
+parser.add_argument("-s", "--scale", type=float, default=2, help="Scaling w.r.t. to image size")	# 결과 이미지 사이즈 얼마나 배로 늘릴것인가 (4)
 parser.add_argument("-n", "--num_outputs", type=int, default=1, help="number of output textures required")	# 결과 텍스쳐 몇개 생성? (1)
 parser.add_argument("-f", "--output_file", type=str, default="output.png", help="output file name")	# 결과 어디에 저장? (output.png)
 parser.add_argument("-p", "--plot", type=int, default=1, help="Show plots")	# plot 보여줄 여부 (1)
@@ -58,7 +58,7 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 		else:
 			image = cv2.resize(image, (H, H))
 	else:
-		image = cv2.resize(image, (110, 110))
+		image = cv2.resize(image, (90, 90))
 	print("image change : {}".format(image.shape))
 
 	H, W = image.shape[:2]	# 조정된 이미지 사이즈로 H, W 변경

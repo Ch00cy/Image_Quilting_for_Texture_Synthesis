@@ -432,8 +432,7 @@ def Pre_RotateExImg(image):  # 기존 이미지 8번 회전된 이미지로 만�
 		# rotation -> 검은 삼각형 부분 => 마스크 만들기
 		# 왼쪽 위 부분
 		tmp = black_h
-		for y in range(
-				black_w):  # 원래대로라면 line_3 이 들어가야 하지만 검은 삼각형이 w,h가 같지않으므로 위에서부터 1칸씩 빼면서 내려가면 깔끔하게 삼각형이 안채워져서 원본이 정사각형이라는 가정 하(이것도 상관없는것같긴한데..)에 깔끔한 검은삼각형을 채우기 위하여 w,h가 같다고 가정하고 채워주기 위해 w=h 로 하였다..
+		for y in range(black_w):  # 원래대로라면 line_3 이 들어가야 하지만 검은 삼각형이 w,h가 같지않으므로 위에서부터 1칸씩 빼면서 내려가면 깔끔하게 삼각형이 안채워져서 원본이 정사각형이라는 가정 하(이것도 상관없는것같긴한데..)에 깔끔한 검은삼각형을 채우기 위하여 w,h가 같다고 가정하고 채워주기 위해 w=h 로 하였다..
 			for x in range(tmp):
 				mask_black[y, x] = 0
 			tmp -= 1
@@ -451,8 +450,7 @@ def Pre_RotateExImg(image):  # 기존 이미지 8번 회전된 이미지로 만�
 			tmp -= 1
 		# 오른쪽 아래 부분
 		tmp = 0
-		for y in range(L - black_h,
-					   L):  # 원래대로라면 line_3 이 들어가야 하지만 검은 삼각형이 w,h가 같지않으므로 위에서부터 1칸씩 빼면서 내려가면 깔끔하게 삼각형이 안채워져서 원본이 정사각형이라는 가정 하(이것도 상관없는것같긴한데..)에 깔끔한 검은삼각형을 채우기 위하여 w,h가 같다고 가정하고 채워주기 위해 w=h 로 하였다..
+		for y in range(L - black_h,L):  # 원래대로라면 line_3 이 들어가야 하지만 검은 삼각형이 w,h가 같지않으므로 위에서부터 1칸씩 빼면서 내려가면 깔끔하게 삼각형이 안채워져서 원본이 정사각형이라는 가정 하(이것도 상관없는것같긴한데..)에 깔끔한 검은삼각형을 채우기 위하여 w,h가 같다고 가정하고 채워주기 위해 w=h 로 하였다..
 			for x in range(L - tmp, L):
 				mask_black[y, x] = 0
 			tmp += 1
@@ -511,7 +509,6 @@ def t_findPatchHorizontal(refBlock, img8, img8_mask, blocksize, overlap, toleran
 				if(errMat[ii][:-1] == where_white[jj]):
 					errWhite.append(errMat[ii])
 
-		print("화이트 : {}".format(errWhite))
 		errWhite.sort(key=lambda x: x[3])  # err 작은것부터 오름차순 정렬
 
 		errIndex = []
@@ -839,7 +836,7 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 	c, d = a//2, b//2
 	tan_mask = np.zeros((a,b))
 
-	angle = 130	# 주어진 각도 - 회전된 직선 영역을 위하여
+	angle = 30	# 주어진 각도 - 회전된 직선 영역을 위하여
 	slope = 0	# 회전된 직선영역의 기울기
 	is_90 = False	# flag : 90도인가, 90도일경우에만 직선의 방정식 x= a 꼴이기 때문
 
@@ -901,19 +898,20 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 		print("r is going")
 		for i in range(0, H-blocksize):
 			for j in range(0,W-blocksize):
-				count_black = 0
-				# 한 블록 당 검은 부분 얼만큼?
-				for si in range(i, i + blocksize):
-					for sj in range(j, j + blocksize):
-						if (img8[r][si, sj] == [0, 0, 0]).all():
-							count_black += 1
-				# 검은 부분의 정도에 따라 나누기
-				if count_black <= (blocksize * blocksize * (1 / 3)):
-					where_white.append([i, j, r])
-				elif count_black <= (blocksize * blocksize * (2 / 3)):
-					where_mid.append([i, j, r])
-				elif count_black >= (blocksize * blocksize * (2 / 3)):
-					where_black.append([i, j, r])
+				if (img8_mask[r][i:i + blocksize, j:j + blocksize] == 1).all():
+					count_black = 0
+					# 한 블록 당 검은 부분 얼만큼?
+					for si in range(i, i + blocksize):
+						for sj in range(j, j + blocksize):
+							if (img8[r][si, sj] == [0, 0, 0]).all():
+								count_black += 1
+					# 검은 부분의 정도에 따라 나누기
+					if count_black <= (blocksize * blocksize * (1 / 3)):
+						where_white.append([i, j, r])
+					elif count_black <= (blocksize * blocksize * (2 / 3)):
+						where_mid.append([i, j, r])
+					elif count_black >= (blocksize * blocksize * (2 / 3)):
+						where_black.append([i, j, r])
 	print("where_black generate")
 
 	################################
