@@ -349,8 +349,7 @@ def Pre_RotateExImg(image):  # 기존 이미지 8번 회전된 이미지로 만�
 
 		# 이미지의 중심을 중심으로 이미지를 r_seta도 회전합니다.
 		M = cv2.getRotationMatrix2D((cX, cY), r_seta, 1.0)  # cv2.getRotationMatrix2D(회전중심좌표(x,y 튜플), 회전각도, 스케일)
-		rotated_seta = cv2.warpAffine(image, M,
-									  (h, w))  # cv2.warpAffine(src 원본이미지, M 아핀 맵 행렬, dsize 출력 이미지 크기) : 회전 변환을 계산
+		rotated_seta = cv2.warpAffine(image, M, (h, w))  # cv2.warpAffine(src 원본이미지, M 아핀 맵 행렬, dsize 출력 이미지 크기) : 회전 변환을 계산
 
 		# # 0,0,0 : 검은 부분일 경우
 		# for h_rimg in range(rotated_seta.shape[0]):
@@ -361,8 +360,7 @@ def Pre_RotateExImg(image):  # 기존 이미지 8번 회전된 이미지로 만�
 		# 			elif is_toroidal[i - 1] == 0:  # non-torodial : 미러링 으로 대체
 		# 				rotated_seta[h_rimg, w_rimg] = image[h - 1 - h_rimg, w - 1 - w_rimg]
 		#
-		# plt.imshow(rotated_seta)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-		# plt.show()
+
 
 		# # 검은 부분 : tan 로 계산 경우
 		# half_seta = (r_seta%90)/2
@@ -424,6 +422,24 @@ def Pre_RotateExImg(image):  # 기존 이미지 8번 회전된 이미지로 만�
 		# pre_img = cv2.addWeighted(rotated_seta, 0.5, fill_black_img, 0.5, 0)
 		# #############################
 
+		if r_seta%90 == 0:	#toroidal - tyling
+			# print("toroidal 1")
+			# plt.imshow(rotated_seta)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+			# plt.show()
+			tNew = rotated_seta
+			# tNew = np.flip(rotated_seta,axis=0)	# 상하반전
+			print("1shape:{}".format(tNew.shape))
+			# plt.imshow(rotated_seta)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+			# plt.show()
+		else:	#non toroidal - mirraring
+			# print("non 1")
+			# plt.imshow(rotated_seta)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+			# plt.show()
+			ntNew = rotated_seta	# 좌우반전
+			print("2shape:{}".format(ntNew.shape))
+			# plt.imshow(rotated_seta)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+			# plt.show()
+
 		## 수정1
 		mask_black = np.ones((h, w, 3))
 		black_h = line_1  # 검은 삼각형 높이부분 : tsin@
@@ -435,25 +451,44 @@ def Pre_RotateExImg(image):  # 기존 이미지 8번 회전된 이미지로 만�
 		for y in range(black_w):  # 원래대로라면 line_3 이 들어가야 하지만 검은 삼각형이 w,h가 같지않으므로 위에서부터 1칸씩 빼면서 내려가면 깔끔하게 삼각형이 안채워져서 원본이 정사각형이라는 가정 하(이것도 상관없는것같긴한데..)에 깔끔한 검은삼각형을 채우기 위하여 w,h가 같다고 가정하고 채워주기 위해 w=h 로 하였다..
 			for x in range(tmp):
 				mask_black[y, x] = 0
+				# if r_seta%90 == 0:	#toro
+				# 	rotated_seta[y,x]= tNew[y - (h - line_1), x - (w - line_1)]
+				# else:	#ntoro
+				# 	rotated_seta[y, x] = ntNew[y - (h - line_1), x - (w - line_1)]
 			tmp -= 1
+
 		# 왼쪽 아래 부분
 		tmp = 1
 		for y in range(L - black_h, L):
 			for x in range(tmp):
 				mask_black[y, x] = 0
+				# if r_seta%90 == 0:	#toro
+				# 	rotated_seta[y,x]= tNew[h - y, x - (w - line_1)]
+				# else:	#ntoro
+				# 	rotated_seta[y, x] = ntNew[h - y, x - (w - line_1)]
 			tmp += 1
 		# 오른쪽 위 부분
 		tmp = black_w
 		for y in range(black_h):
 			for x in range(L - tmp, L):
 				mask_black[y, x] = 0
+				# if r_seta%90 == 0:	#toro
+				# 	rotated_seta[y,x]= tNew[y - (h - line_1), w-x]
+				# else:	#ntoro
+				# 	rotated_seta[y, x] = ntNew[y - (h - line_1), w-x]
 			tmp -= 1
 		# 오른쪽 아래 부분
 		tmp = 0
 		for y in range(L - black_h,L):  # 원래대로라면 line_3 이 들어가야 하지만 검은 삼각형이 w,h가 같지않으므로 위에서부터 1칸씩 빼면서 내려가면 깔끔하게 삼각형이 안채워져서 원본이 정사각형이라는 가정 하(이것도 상관없는것같긴한데..)에 깔끔한 검은삼각형을 채우기 위하여 w,h가 같다고 가정하고 채워주기 위해 w=h 로 하였다..
 			for x in range(L - tmp, L):
 				mask_black[y, x] = 0
+				# if r_seta%90 == 0:	#toro
+				# 	rotated_seta[y,x]= tNew[h-y, w-x]
+				# else:	#ntoro
+				# 	rotated_seta[y, x] = ntNew[h-y, w-x]
 			tmp += 1
+		plt.imshow(rotated_seta)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+		plt.show()
 
 		# rotation -> 검은 삼각형 부분 => 합성 #########
 		# r_texture_black = r_generateTextureMap(rotated_seta, blocksize, overlap, h, w, tolerance, mask_black)	# 방향성 고려해서 새로 합성한 후보이미지
@@ -467,10 +502,16 @@ def Pre_RotateExImg(image):  # 기존 이미지 8번 회전된 이미지로 만�
 
 		# img8.append(r_texture_black)
 
+		# Save
+		pre_img = (255 * rotated_seta).astype(
+			np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
+		pre_img = cv2.cvtColor(pre_img, cv2.COLOR_RGB2BGR)
+
+		cv2.imwrite("8img_" + str(i) + ".png", pre_img)
 		img8.append([rotated_seta, mask_black])
 
 	# # Save
-	# pre_img = (255 * r_texture_black).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
+	# pre_img = (255 * rotated_seta).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
 	# pre_img = cv2.cvtColor(pre_img, cv2.COLOR_RGB2BGR)
 	#
 	# cv2.imwrite("8img_" + str(i) + ".png", pre_img)
@@ -496,10 +537,10 @@ def t_findPatchHorizontal(refBlock, img8, img8_mask, blocksize, overlap, toleran
 	for i, j in product(range(H-blocksize), range(W-blocksize)):	# product : 중복 순열 , 데이터를 뽑아 일렬로 나열하는 모든 경우의 수 / range : 0~해당 값까지
 																	# openCV 경우 -> (rows, columns, channels) 튜플 보유,1,2, ... ,H-blocksize] [0,1,2, ... , W-blocksize] => (0,0),(0,1)..(0,W-blocksize),(1,0),...,(H-blocksize,W-blocksize)
 		for r in range(len(img8)):
-			if (img8_mask[r][i:i + blocksize, j:j + blocksize] == 1).all():	# 회전 이미지의 이미지 유효값에서의 블록인 경우 만
-				rmsVal = ((img8[r][i:i + blocksize, j:j + overlap] - refBlock[:,-overlap:]) ** 2).mean()  # (이웃 블록의 오버랩 부분 - 각 블록의 오버랩 부분) 제곱 의 평균
-				if rmsVal > 0:
-					errMat.append([i, j, r, rmsVal])  # 텍스쳐 크기에서 블록사이즈만큼 한줄 작아진 배열에 대입
+			# if (img8_mask[r][i:i + blocksize, j:j + blocksize] == 1).all():	# 회전 이미지의 이미지 유효값에서의 블록인 경우 만
+			rmsVal = ((img8[r][i:i + blocksize, j:j + overlap] - refBlock[:,-overlap:]) ** 2).mean()  # (이웃 블록의 오버랩 부분 - 각 블록의 오버랩 부분) 제곱 의 평균
+			if rmsVal > 0:
+				errMat.append([i, j, r, rmsVal])  # 텍스쳐 크기에서 블록사이즈만큼 한줄 작아진 배열에 대입
 
 	y,x,r = 0,0,0
 	if (tan_mask[:blocksize, (blkIdx):(blkIdx + blocksize)] == 1).any():  # 마스크 1 안에 들어갈 경우
@@ -1166,10 +1207,10 @@ def fin_findPatchHorizontal(refBlock, img8, blocksize, overlap, tolerance, mask)
 	for i, j in product(range(H-blocksize), range(W-blocksize)):	# product : 중복 순열 , 데이터를 뽑아 일렬로 나열하는 모든 경우의 수 / range : 0~해당 값까지
 																	# openCV 경우 -> (rows, columns, channels) 튜플 보유,1,2, ... ,H-blocksize] [0,1,2, ... , W-blocksize] => (0,0),(0,1)..(0,W-blocksize),(1,0),...,(H-blocksize,W-blocksize)
 		for r in range(len(img8)):
-			if (mask[r][i:i + blocksize, j:j + blocksize] == 1).all():
-				rmsVal = ((img8[r][i:i+blocksize, j:j+overlap] - refBlock[:, -overlap:])**2).mean()	# (이웃 블록의 오버랩 부분 - 각 블록의 오버랩 부분) 제곱 의 평균
-				if rmsVal > 0:
-					errMat.append([i,j,r,rmsVal]) # 텍스쳐 크기에서 블록사이즈만큼 한줄 작아진 배열에 대입
+			# if (mask[r][i:i + blocksize, j:j + blocksize] == 1).all():
+			rmsVal = ((img8[r][i:i+blocksize, j:j+overlap] - refBlock[:, -overlap:])**2).mean()	# (이웃 블록의 오버랩 부분 - 각 블록의 오버랩 부분) 제곱 의 평균
+			if rmsVal > 0:
+				errMat.append([i,j,r,rmsVal]) # 텍스쳐 크기에서 블록사이즈만큼 한줄 작아진 배열에 대입
 
 	# errMat_2dLow = list(zip(*errMat))
 	# minVal = np.min(errMat_2dLow[3])	# 에러범위 값 중 가장 작은 것
@@ -1185,11 +1226,11 @@ def fin_findPatchHorizontal(refBlock, img8, blocksize, overlap, tolerance, mask)
 	# 	if errMat[i][3] < (1.0 + tolerance) * (minVal):
 	# 		errIndex.append(errMat[i])
 
-	while (True):
-		c = np.random.randint(len(errIndex))	# random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
-		y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
-		if (mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
-			break
+	# while (True):
+	c = np.random.randint(len(errIndex))	# random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
+	y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
+		# if (mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
+		# 	break
 
 	return img8[r][y:y+blocksize, x:x+blocksize]	# 텍스쳐에서 해당 블록 return
 
@@ -1207,11 +1248,11 @@ def fin_findPatchBoth(refBlockLeft, refBlockTop, img8, blocksize, overlap, toler
 	for i, j in product(range(H-blocksize), range(W-blocksize)):	# product : 중복 순열 , 데이터를 뽑아 일렬로 나열하는 모든 경우의 수 / range : 0~해당 값까지
 																	# [0,1,2, ... ,H-blocksize] [0,1,2, ... , W-blocksize] => (0,0),(0,1)..(0,W-blocksize),(1,0),...,(H-blocksize,W-blocksize)
 		for r in range(len(img8)):
-			if (mask[r][i:i + blocksize, j:j + blocksize] == 1).all():
-				rmsVal = ((img8[r][i:i+overlap, j:j+blocksize] - refBlockTop[-overlap:, :])**2).mean()	# (위의 이웃 블록의 오버랩 부분 - 각 블록의 위쪽 오버랩 부분) 제곱 의 평균
-				rmsVal = rmsVal + ((img8[r][i:i+blocksize, j:j+overlap] - refBlockLeft[:, -overlap:])**2).mean()	# (왼쪽의 이웃 블록의 오버랩 부분 - 각 블록의 오른쪽 오버랩 부분) 제곱 의 평균
-				if rmsVal > 0:
-					errMat.append([i,j,r,rmsVal])	# 텍스쳐 크기에서 블록사이즈만큼 한줄 작아진 배열에 대입
+			# if (mask[r][i:i + blocksize, j:j + blocksize] == 1).all():
+			rmsVal = ((img8[r][i:i+overlap, j:j+blocksize] - refBlockTop[-overlap:, :])**2).mean()	# (위의 이웃 블록의 오버랩 부분 - 각 블록의 위쪽 오버랩 부분) 제곱 의 평균
+			rmsVal = rmsVal + ((img8[r][i:i+blocksize, j:j+overlap] - refBlockLeft[:, -overlap:])**2).mean()	# (왼쪽의 이웃 블록의 오버랩 부분 - 각 블록의 오른쪽 오버랩 부분) 제곱 의 평균
+			if rmsVal > 0:
+				errMat.append([i,j,r,rmsVal])	# 텍스쳐 크기에서 블록사이즈만큼 한줄 작아진 배열에 대입
 
 	# errMat_2dLow = list(zip(*errMat))
 	# minVal = np.min(errMat_2dLow[3])  # 에러범위 값 중 가장 작은 것
@@ -1227,11 +1268,11 @@ def fin_findPatchBoth(refBlockLeft, refBlockTop, img8, blocksize, overlap, toler
 	# 	if errMat[i][3] < (1.0 + tolerance) * (minVal):
 	# 		errIndex.append(errMat[i])
 
-	while (True):
-		c = np.random.randint(len(errIndex))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
-		y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
-		if (mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
-			break
+	# while (True):
+	c = np.random.randint(len(errIndex))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
+	y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
+		# if (mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
+		# 	break
 
 	return img8[r][y:y+blocksize, x:x+blocksize]	# 텍스쳐에서 해당 블록 return
 
@@ -1248,10 +1289,10 @@ def fin_findPatchVertical(refBlock, img8, blocksize, overlap, tolerance, mask):
 	for i, j in product(range(H-blocksize), range(W-blocksize)):	# product : 중복 순열 , 데이터를 뽑아 일렬로 나열하는 모든 경우의 수 / range : 0~해당 값까지
 																	# [0,1,2, ... ,H-blocksize] [0,1,2, ... , W-blocksize] => (0,0),(0,1)..(0,W-blocksize),(1,0),...,(H-blocksize,W-blocksize)
 		for r in range(len(img8)):
-			if (mask[r][i:i + blocksize, j:j + blocksize] == 1).all():
-				rmsVal = ((img8[r][i:i+overlap, j:j+blocksize] - refBlock[-overlap:, :])**2).mean()	# (이웃 블록의 오버랩 부분 - 각 블록의 오버랩 부분) 제곱 의 평균
-				if rmsVal > 0:
-					errMat.append([i,j,r,rmsVal])
+			# if (mask[r][i:i + blocksize, j:j + blocksize] == 1).all():
+			rmsVal = ((img8[r][i:i+overlap, j:j+blocksize] - refBlock[-overlap:, :])**2).mean()	# (이웃 블록의 오버랩 부분 - 각 블록의 오버랩 부분) 제곱 의 평균
+			if rmsVal > 0:
+				errMat.append([i,j,r,rmsVal])
 
 	# errMat_2dLow = list(zip(*errMat))
 
@@ -1266,11 +1307,11 @@ def fin_findPatchVertical(refBlock, img8, blocksize, overlap, tolerance, mask):
 	# 	if errMat[i][3] < (1.0 + tolerance) * (minVal):
 	# 		errIndex.append(errMat[i])
 
-	while (True):
-		c = np.random.randint(len(errIndex))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
-		y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
-		if (mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
-			break
+	# while (True):
+	c = np.random.randint(len(errIndex))  # random.randint() : [최소값, 최대값) 랜덤 정수 / 0~len(y) 전까지 / len(y) == len(x)
+	y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
+		# if (mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
+		# 	break
 
 	return img8[r][y:y+blocksize, x:x+blocksize]	# 텍스쳐에서 해당 블록 return
 
