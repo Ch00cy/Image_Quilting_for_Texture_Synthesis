@@ -336,7 +336,7 @@ def generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	# main
 #추가#########################
 
 # 전처리
-def Pre_RotateExImg(image):  # 기존 이미지 8번 회전된 이미지로 만드는 내가만든 함수
+def Pre_RotateExImg(image, blocksize, overlap, tolerance):  # 기존 이미지 8번 회전된 이미지로 만드는 내가만든 함수
 	####try################################################
 	# 이미지의 크기를 잡고 이미지의 중심을 계산합니다.
 	(h, w) = image.shape[:2]
@@ -455,8 +455,8 @@ def Pre_RotateExImg(image):  # 기존 이미지 8번 회전된 이미지로 만�
 			tmp += 1
 
 		# rotation -> 검은 삼각형 부분 => 합성 #########
-		# r_texture_black = r_generateTextureMap(rotated_seta, blocksize, overlap, h, w, tolerance, mask_black)	# 방향성 고려해서 새로 합성한 후보이미지
-
+		r_texture_black = r_generateTextureMap(rotated_seta, blocksize, overlap, h, w, tolerance, mask_black)
+		print("^^")
 		# 어차피 회전 예제 이미지의 방향값을 가져오는 것이 목적이므로 더 자연스러운 새로만든 텍스쳐를 사용한다.
 		# r_texture_black1 = r_texture_black[:h, :w, :]	# r_generateTextureMap () 함수 시 블록 사이즈에 나눠떨어지게 크기가 생성되므로 h,w 라도 좀 더 크게 잡힌다. 따라서 크기가 달라 아래에서 연산이 안되므로 조절해준다.
 		# r_texture = rotated_seta * mask_black + r_texture_black1 * (1-mask_black)	# 기존 이미지 + 방향성 합성 이미지 검은부분용
@@ -467,8 +467,14 @@ def Pre_RotateExImg(image):  # 기존 이미지 8번 회전된 이미지로 만�
 		# img8.append(r_texture_black)
 
 		# Save
-		pre_img = (255 * rotated_seta).astype(
-			np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
+		pre_img1 = (255 * r_texture_black).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
+		pre_img1 = cv2.cvtColor(pre_img1, cv2.COLOR_RGB2BGR)
+
+		cv2.imwrite("forcnn" + str(i) + ".png", pre_img1)
+		##############
+
+		# Save
+		pre_img = (255 * rotated_seta).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
 		pre_img = cv2.cvtColor(pre_img, cv2.COLOR_RGB2BGR)
 
 		cv2.imwrite("8img_" + str(i) + ".png", pre_img)
@@ -1086,7 +1092,7 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 	# Starting index and block
 	H, W = image.shape[:2]
 
-	pre_img8 = Pre_RotateExImg(image)  # pre_img8 : [ [rotated_seta , mask] , [rotated_seta , mask] , .. ]
+	pre_img8 = Pre_RotateExImg(image, blocksize, overlap, tolerance)  # pre_img8 : [ [rotated_seta , mask] , [rotated_seta , mask] , .. ]
 	# => shape : (8, 2, h, w, 3)
 	tmp_img8 = list(zip(*pre_img8))  # [ [rotated_seta 끼리 ] , [mask 끼리] ] 로 형태 변환
 	img8 = tmp_img8[0]
@@ -1564,7 +1570,7 @@ def fin_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	# 
 	# [(H기준 : nH(들어가는 블록개수) * (오버랩 뺀 블록실제사이즈) + 마지막에 오버랩 안되므로 블록 하나 더 사이즈) , (W기준 동일) , 색상] => 0으로 초기화
 	# Starting index and block
 	H, W = image.shape[:2]
-	pre_img8 = Pre_RotateExImg(image)	# pre_img8 : [ [rotated_seta , mask] , [rotated_seta , mask] , .. ]
+	pre_img8 = Pre_RotateExImg(image, blocksize, overlap, tolerance)	# pre_img8 : [ [rotated_seta , mask] , [rotated_seta , mask] , .. ]
 																		# => shape : (8, 2, h, w, 3)
 	tmp_img8 = list(zip(*pre_img8))	# [ [rotated_seta 끼리 ] , [mask 끼리] ] 로 형태 변환
 	img8 = tmp_img8[0]
