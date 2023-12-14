@@ -51,37 +51,23 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 	# image = cv2.resize(image, (120, 120))
 	H, W = image.shape[:2]  # 이미지 Height, Width
 
-<<<<<<< HEAD
-	# 수정 - 추가부분
-	# 이미지 사이즈 w,h중 작은 것에 맞춰서 정사각형으로 크기조절
+	image = image[H//2+50:H//2+150, W//2:W//2+100]	# 거품 이미지 확인 용 -> crop
+
+	# # 수정 - 추가부분
+	# # 이미지 사이즈 w,h중 작은 것에 맞춰서 정사각형으로 크기조절
 	# if (H < 110 or W < 110):
-=======
-	# # ++이미지 사이즈 재설정++
-	# # 1) 256 으로 사이즈 고정
-	# image = cv2.resize(image, (256, 256))
-
-	# 2) 이미지 사이즈 w,h중 작은 것에 맞춰서 정사각형으로 크기조절
-	if H > W:
-		image = cv2.resize(image, (W, W))
-	else:
-		image = cv2.resize(image, (H, H))
-
-	# # 3) 이미지 사이즈 최대 256 일 경우
-	# if (H < 256 or W < 256):
->>>>>>> 8rotateEnd
 	# 	if H>W:
 	# 		image = cv2.resize(image, (W, W))
 	# 	else:
 	# 		image = cv2.resize(image, (H, H))
 	# else:
-<<<<<<< HEAD
 	# 	image = cv2.resize(image, (90, 90))
-	image = cv2.resize(image, (60, 60))
-	print("image change : {}".format(image.shape))
-=======
-	# 	image = cv2.resize(image, (256, 256))
+	# # image = cv2.resize(image, (60, 60))
+	# print("image change : {}".format(image.shape))
 
->>>>>>> 8rotateEnd
+	# crop 이미지 확인
+	plt.imshow(image)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+	plt.show()
 
 	H, W = image.shape[:2]	# 조정된 이미지 사이즈로 H, W 변경
 	outH, outW = int(scale * H), int(scale * W)  # 아웃풋 결과 : 이미지의 scale(4) 배로 키워줌
@@ -91,21 +77,14 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 	# 모든 변경은 args 로..
 	for i in range(args.num_outputs):	# 결과 개수 만큼 반복
 
-<<<<<<< HEAD
 		# 수정
-		# textureMap = foam_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
-		textureMap = fin_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
-=======
-		# 실행
-		# generate.py -> generateTextureMap(image, blocksize, overlap, outH, outW, tolerance) 함수 실행
-		textureMap = fin_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)	# 실행
->>>>>>> 8rotateEnd
+		textureMap = foam_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
+		# textureMap = fin_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
 
 		# 후처리
 		textureMap = (255 * textureMap).astype(np.uint8)
 		textureMap = cv2.cvtColor(textureMap, cv2.COLOR_RGB2BGR)
 
-<<<<<<< HEAD
 		# Save
 		plt.imshow(textureMap)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
 		plt.show()
@@ -150,20 +129,3 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 		# else:
 		# 	cv2.imwrite(args.output_file.replace(".", "_{}.".format(i)), textureMap)
 		# 	print("Saved output to {}".format(args.output_file.replace(".", "_{}.".format(i))))
-=======
-		# 이미지 확인 여부
-		if args.plot:	# plot 보여줄지 true 면 실행 (디폴트 1)
-			plt.imshow(textureMap)	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-			plt.show()	# array의 값들을 색으로 환산해 이미지의 형태로 보여줌
-
-		#Save
-		textureMap = (255*textureMap).astype(np.uint8)	# 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
-		textureMap = cv2.cvtColor(textureMap, cv2.COLOR_RGB2BGR)
-
-		if args.num_outputs == 1:
-			cv2.imwrite("output.png", textureMap)
-			print("Saved output to {}".format(args.output_file))
-		else:
-			cv2.imwrite(args.output_file.replace(".", "_{}.".format(i)), textureMap)
-			print("Saved output to {}".format(args.output_file.replace(".", "_{}.".format(i))))
->>>>>>> 8rotateEnd
