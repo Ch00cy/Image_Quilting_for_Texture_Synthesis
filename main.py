@@ -78,7 +78,7 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 	for i in range(args.num_outputs):	# 결과 개수 만큼 반복
 
 		# 수정
-		textureMap = foam_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
+		textureMap = foam_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance, 80)
 		# textureMap = fin_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
 
 		# 후처리

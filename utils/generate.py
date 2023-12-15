@@ -524,7 +524,8 @@ def simual_findPatchHorizontal(refBlock, img8, img8_mask, blocksize, overlap, to
 				errMat.append([i, j, r, rmsVal])  # 텍스쳐 크기에서 블록사이즈만큼 한줄 작아진 배열에 대입
 
 	y,x,r = 0,0,0
-	if (tan_mask[:blocksize, (blkIdx):(blkIdx + blocksize)] == 1).any():  # 마스크 1 안에 들어갈 경우
+	# 마스크 1 안에 들어갈 경우
+	if (tan_mask[:blocksize, (blkIdx):(blkIdx + blocksize)] == 1).any():  
 		errWhite = []
 		for ii in range(len(errMat)):
 			for jj in range(len(where_white)):
@@ -556,7 +557,9 @@ def simual_findPatchHorizontal(refBlock, img8, img8_mask, blocksize, overlap, to
 			r = errIndex[c][2]
 			if (img8_mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
 				break
-	elif (tan_mask[:blocksize, (blkIdx):(blkIdx + blocksize)] == 2).any():  # 마스크 2 안에 들어갈 경우
+
+	# 마스크 2 안에 들어갈 경우
+	elif (tan_mask[:blocksize, (blkIdx):(blkIdx + blocksize)] == 2).any():  
 		errMid = []
 		for ii in range(len(errMat)):
 			for jj in range(len(where_mid)):
@@ -574,7 +577,9 @@ def simual_findPatchHorizontal(refBlock, img8, img8_mask, blocksize, overlap, to
 			y, x, r = errIndex[c][0], errIndex[c][1], errIndex[c][2]
 			if (img8_mask[r][y:y + blocksize, x:x + blocksize] == 1).all():
 				break
-	else:	# 마스크 0 밖 부분
+
+	# 마스크 0 밖 부분
+	else:	
 		errBlack = []
 		for ii in range(len(errMat)):
 			for jj in range(len(where_black)):
@@ -586,6 +591,7 @@ def simual_findPatchHorizontal(refBlock, img8, img8_mask, blocksize, overlap, to
 		errIndex = []
 		errIndex.append(errBlack[:5])  # 앞에 5개
 		errIndex = sum(errIndex, [])  # [] 한꺼풀 벗겨주기
+		print("len: : {}".format(len(errIndex)))
 
 		# where_black2 = []
 		# for k in range(len(where_black)):  # foam data 일정이상 검은부분인 인덱스 중
@@ -819,7 +825,7 @@ def simual_findPatchVertical(refBlock, img8, img8_mask, blocksize, overlap, tole
 
 #추가####################
 # foam data 에 대한 합성
-def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	# main.py에서 사용되는 메인. tolerance : 허용요차
+def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance, angle):	# main.py에서 사용되는 메인. tolerance : 허용요차
 	# 사용: generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
 	# ceil() : 소수점 자리의 숫자를 무조건 올리는 함수
 	nH = int(ceil((outH - blocksize)*1.0/(blocksize - overlap)))	# 최종 이미지 크기에 오버랩 부분을 제외한 실제 블록들이 몇개 들어가는가?
@@ -858,7 +864,6 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 	c, d = a//2, b//2
 	tan_mask = np.zeros((a,b))
 
-	angle = 80	# 주어진 각도 - 회전된 직선 영역을 위하여
 	slope = 0	# 회전된 직선영역의 기울기
 	is_90 = False	# flag : 90도인가, 90도일경우에만 직선의 방정식 x= a 꼴이기 때문
 
@@ -870,7 +875,6 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 	else:	# 90, 180 도 배수 제외한 나머지 일 경우 y = ax + b
 		slope = math.tan(math.radians(angle))
 
-	flag1 = 0
 	flagi = 0
 	flagj = 0
 
@@ -901,7 +905,7 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	#
 					tan_mask[y,x] = 2
 					t+=1
 					textureMap[y,x]=(0,255,0)
-		print("line generate")
+	print("line generate finished")
 
 		# if t==0:	# for 문  y -> x 순으로 확인할 때 tan_line 이 짝수가 나오는 식이면 y 가 홀수일때 조건 만족하는 x를 찾을 수 없기 때문에 이전값을 저장했다가 그대로 씀
 		# 	tan_mask[y,tmpj] = 1
@@ -1345,7 +1349,7 @@ def fin_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	# 
 	startBlock = image[randH:randH+blocksize, randW:randW+blocksize]	# 랜덤한 위치에서 시작하는 블록 사이즈만큼 잘라서 가져옴
 	textureMap[:blocksize, :blocksize, :] = startBlock	# 0으로 초기화된 맵에서 첫번째 블록에 랜덤하게 가져온 블록 대입함
 
-	print(">>r_generateTextureMap 고고싱")
+	print(">>fin_generateTextureMap 패치이어붙이기 시작")
 	# Fill the first row : 행(아래 위)
 	for i, blkIdx in enumerate(range((blocksize-overlap), textureMap.shape[1]-overlap, (blocksize-overlap))):	# enumerate() : 인덱스와 원소 차례로 반환
 		# 오버랩 부분 제외 블록 부분부터 ~ 오버랩 제외 열들까지 , 오버랩 제외한 블록사이즈만큼 옆으로 이동 (오른 -> 왼)
