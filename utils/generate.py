@@ -503,6 +503,108 @@ def Make_RotateExImg(image, blocksize, overlap, tolerance):  # 방향성 더해�
 
 	return img8
 
+# 전처리 : 회전 이미지 생성
+def simual_RotateExImg(image, blocksize, overlap, tolerance):  # 방향성 더해주기 위한 내가만든 함수
+	print(">>Pre_roatateExImg")
+	# 사용: generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
+
+	####try################################################
+	# 이미지의 크기를 잡고 이미지의 중심을 계산합니다.
+	(h, w) = image.shape[:2]
+	(cX, cY) = (w // 2, h // 2)
+	# is_toroidal = []
+
+	img8 = []
+
+	for i in range(1,ANGEL_NUM+1):
+		imax = ANGEL_NUM
+		r_seta = i / imax * 360
+
+		# 이미지의 중심을 중심으로 이미지를 r_seta도 회전합니다.
+		M = cv2.getRotationMatrix2D((cX, cY), r_seta, 1.0)	# cv2.getRotationMatrix2D(회전중심좌표(x,y 튜플), 회전각도, 스케일)
+		rotated_seta = cv2.warpAffine(image, M, (h, w))	# cv2.warpAffine(src 원본이미지, M 아핀 맵 행렬, dsize 출력 이미지 크기) : 회전 변환을 계산
+
+		######추가분
+		mask_black = np.ones((h, w, 3))
+		if(r_seta%90 != 0):
+			def get_crosspt(y1, x21, y21, x22, y22):
+				m2 = round((y22 - y21) / (x22 - x21) ,3)
+				a = y1
+				x1 = x21
+				y1 = y21
+				Y = a
+				X = round( ((a-y1)/m2)+x1 ,3)
+
+				return X, Y
+
+			print("r_seta: {}".format(r_seta))
+			a = w
+			d = round(a*math.sqrt(2)/2, 3)
+			de = math.radians(r_seta%90)
+			r45 = math.radians(45)
+
+			L1 = a//2
+			L2s1x = d * round(math.cos(r45+de),3)
+			L2s1y = d * round(math.sin(r45 + de),3)
+			L2s2x = d * round(math.cos(r45-de),3)
+			L2s2y = -1 * (d * round(math.sin(r45 - de),3))
+			X2,Y2 = get_crosspt(L1, L2s1x, L2s1y, L2s2x, L2s2y)
+
+			L3s1x = d * round(math.cos(r45 + de), 3)
+			L3s1y = d * round(math.sin(r45 + de), 3)
+			L3s2x = -1 * (d * round(math.cos(r45 - de), 3))
+			L3s2y = d * round(math.sin(r45 - de), 3)
+			X3, Y3 = get_crosspt(L1, L3s1x, L3s1y, L3s2x, L3s2y)
+
+			Line1 = int(X3+L1)
+			Line2 = int(X2-X3)
+			Line3 = int(L1-X2)
+			overplus = 3
+
+			print(Line1,Line2,Line3)
+
+			# fill_black_img = rotated_seta.copy()
+
+			# 왼쪽 위 부분
+			for x in range((Line1+1)+overplus):  # 원래대로라면 line_3 이 들어가야 하지만 검은 삼각형이 w,h가 같지않으므로 위에서부터 1칸씩 빼면서 내려가면 깔끔하게 삼각형이 안채워져서 원본이 정사각형이라는 가정 하(이것도 상관없는것같긴한데..)에 깔끔한 검은삼각형을 채우기 위하여 w,h가 같다고 가정하고 채워주기 위해 w=h 로 하였다..
+				equation1 = ceil((-1) * (Line3 / Line1) * x + Line3)
+				for y in range(equation1+overplus):
+					# fill_black_img[y, x] = [1, 0, 0]
+					mask_black[y, x] = 0
+			# 왼쪽 아래 부분
+			for x in range((Line3+1)+overplus):
+				equation2 = ceil((Line1 / Line3) * x + (Line2 + Line3))
+				for y in range(equation2-overplus,a):
+					# fill_black_img[y, x] = [1, 0, 0]
+					mask_black[y, x] = 0
+			# 오른쪽 위 부분
+			for x in range((a-Line3-1)-overplus,a):
+				equation3 = ceil((Line1 / Line3) * (x - (Line1 + Line2)) + (Line2 + Line3) + (-1) * (Line2 + Line3))
+				for y in range(equation3+overplus):
+					# fill_black_img[y, x] = [1, 0, 0]
+					mask_black[y, x] = 0
+			# 오른쪽 아래 부분
+			for x in range((a-Line1-1)-overplus,a):  # 원래대로라면 line_3 이 들어가야 하지만 검은 삼각형이 w,h가 같지않으므로 위에서부터 1칸씩 빼면서 내려가면 깔끔하게 삼각형이 안채워져서 원본이 정사각형이라는 가정 하(이것도 상관없는것같긴한데..)에 깔끔한 검은삼각형을 채우기 위하여 w,h가 같다고 가정하고 채워주기 위해 w=h 로 하였다..
+				equation4 = ceil((-1) * (Line3 / Line1) * (x - (Line2 + Line3)) + Line3 + (a-Line3))
+				for y in range(equation4-overplus,a):
+					# fill_black_img[y, x] = [1, 0, 0]
+					mask_black[y, x] = 0
+			# pre_img = cv2.addWeighted(rotated_seta, 0.5, fill_black_img, 0.5, 0)
+
+			# plt.imshow(pre_img)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+			# plt.show()  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+
+		# ################
+		
+		img8.append([rotated_seta, mask_black])
+
+		# Save
+		pre_img = (255 * rotated_seta).astype(np.uint8)  # 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
+		pre_img = cv2.cvtColor(pre_img, cv2.COLOR_RGB2BGR)
+
+		cv2.imwrite("simual8" + str(i) + ".png", pre_img)
+
+	return img8
 
 ###########################
 # 거품 보간 시뮬레이션
@@ -836,7 +938,7 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance, an
 	# Starting index and block
 	H, W = image.shape[:2]
 
-	pre_img8 = Make_RotateExImg(image, blocksize, overlap, tolerance)  # pre_img8 : [ [rotated_seta , mask] , [rotated_seta , mask] , .. ]
+	pre_img8 = simual_RotateExImg(image, blocksize, overlap, tolerance)  # pre_img8 : [ [rotated_seta , mask] , [rotated_seta , mask] , .. ]
 	# => shape : (8, 2, h, w, 3)
 	tmp_img8 = list(zip(*pre_img8))  # [ [rotated_seta 끼리 ] , [mask 끼리] ] 로 형태 변환
 	img8 = tmp_img8[0]
@@ -922,7 +1024,7 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance, an
 	where_black = []
 
 	for r in range(len(img8)):
-		print("r is going")
+		print("블록마다 유효값 계산 중")
 		for i in range(0, H-blocksize):
 			for j in range(0,W-blocksize):
 				if (img8_mask[r][i:i + blocksize, j:j + blocksize] == 1).all():
@@ -939,7 +1041,7 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance, an
 						where_mid.append([i, j, r])
 					elif count_black >= (blocksize * blocksize * (2 / 3)):
 						where_black.append([i, j, r])
-	print("where_black generate")
+	print("블록 유효값 계산 완료")
 
 	################################
 
@@ -1140,7 +1242,7 @@ def r_generateTextureMap(image, blocksize, overlap, y, x, tolerance, mask):	# �
 		randH = np.random.randint(H - blocksize)  # 블록사이즈 한줄 뺀 값에서 랜덤한 값
 		randW = np.random.randint(W - blocksize)  # 블록사이즈 한줄 뺀 값에서 랜덤한 값
 
-		if (mask[randH:randH + blocksize, randW:randW + blocksize] == 1).all():  # 로테이션 이미지 존재한는 부분일 때의 random 값 뽑아내기
+		if (mask[randH:randH + blocksize, randW:randW + blocksize] == 1).all():  # 로테이션 이미지 존재하는 부분일 때의 random 값 뽑아내기
 			break
 
 	startBlock = image[randH:randH + blocksize, randW:randW + blocksize]  # 랜덤한 위치에서 시작하는 블록 사이즈만큼 잘라서 가져옴

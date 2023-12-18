@@ -21,7 +21,8 @@ parser.add_argument("-b", "--block_size", type=int, default=20, help="block size
 parser.add_argument("-o", "--overlap", type=int, default=1.0/6, help="overlap size in pixels (defaults to 1/6th of block size)")	# 오버랩 부분 (1/6 픽셀)
 parser.add_argument("-s", "--scale", type=float, default=4, help="Scaling w.r.t. to image size")	# 결과 이미지 사이즈 얼마나 배로 늘릴것인가 (4)
 parser.add_argument("-n", "--num_outputs", type=int, default=1, help="number of output textures required")	# 결과 텍스쳐 몇개 생성? (1)
-parser.add_argument("-f", "--output_file", type=str, default="Result.png", help="output file name")	# 결과 어디에 저장? (output.png)
+parser.add_argument("-ro", "--rotate_output_file", type=str, default="RotateOutput.png", help="rotate output file name")	# 결과 어디에 저장? (output.png)
+parser.add_argument("-so", "--simual_output_file", type=str, default="SimualOutput.png", help="simual output file name")	# 결과 어디에 저장? (output.png)
 parser.add_argument("-p", "--plot", type=int, default=1, help="Show plots")	# plot 보여줄 여부 (1)
 parser.add_argument("-t", "--tolerance", type=float, default=0.1, help="Tolerance fraction")	# 허용오차 (0.1)
 
@@ -51,19 +52,23 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 	# image = cv2.resize(image, (120, 120))
 	H, W = image.shape[:2]  # 이미지 Height, Width
 
-	image = image[H//2-50:H//2+250, W//2-50:W//2+250]	# 거품 이미지 확인 용 -> crop
+	# image = image[H//2-50:H//2+250, W//2-50:W//2+250]	# 거품 이미지 확인 용 -> crop
 
-	# # 수정 - 추가부분
-	# # 이미지 사이즈 w,h중 작은 것에 맞춰서 정사각형으로 크기조절
-	# if (H < 110 or W < 110):
-	# 	if H>W:
-	# 		image = cv2.resize(image, (W, W))
-	# 	else:
-	# 		image = cv2.resize(image, (H, H))
+	# 수정 - 추가부분
+	# 이미지 사이즈 w,h중 작은 것에 맞춰서 정사각형으로 크기조절
+	if (H < 300 or W < 300):
+		if H>W:
+			image = cv2.resize(image, (W, W))
+		else:
+			image = cv2.resize(image, (H, H))
+	else:
+		image = cv2.resize(image, (300, 300))
+	# if H>W:
+	# 	image = cv2.resize(image, (W, W))
 	# else:
-	# 	image = cv2.resize(image, (90, 90))
-	# # image = cv2.resize(image, (60, 60))
-	# print("image change : {}".format(image.shape))
+	# 	image = cv2.resize(image, (H, H))
+	# image = cv2.resize(image, (60, 60))
+	print("image change : {}".format(image.shape))
 
 	# crop 이미지 확인
 	plt.imshow(image)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
@@ -78,7 +83,7 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 	for i in range(args.num_outputs):	# 결과 개수 만큼 반복
 
 		# 수정
-		textureMap = foam_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance, 80)
+		textureMap = foam_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance, 30)
 		# textureMap = fin_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
 
 		# 후처리
@@ -90,7 +95,7 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 		plt.show()
 		textureMap = (255*textureMap).astype(np.uint8)	# 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
 		textureMap = cv2.cvtColor(textureMap, cv2.COLOR_RGB2BGR)
-		cv2.imwrite(args.output_file, textureMap)
+		cv2.imwrite(args.simual_output_file, textureMap)
 
 		# textureMap1 = generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)	# generate.py -> generateTextureMap(image, blocksize, overlap, outH, outW, tolerance) 함수 실행
 
