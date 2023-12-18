@@ -913,6 +913,7 @@ def foam_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance, an
 
 	# plt.imshow(textureMap)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
 	# plt.show()
+	
 	# textureMap[flagi:flagi+blocksize, flagj:flagj+blocksize, :] = startBlock  # 0으로 초기화된 맵에서 첫번째 블록에 랜덤하게 가져온 블록 대입함
 	######################
 

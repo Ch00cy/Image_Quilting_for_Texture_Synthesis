@@ -21,7 +21,7 @@ parser.add_argument("-b", "--block_size", type=int, default=20, help="block size
 parser.add_argument("-o", "--overlap", type=int, default=1.0/6, help="overlap size in pixels (defaults to 1/6th of block size)")	# 오버랩 부분 (1/6 픽셀)
 parser.add_argument("-s", "--scale", type=float, default=4, help="Scaling w.r.t. to image size")	# 결과 이미지 사이즈 얼마나 배로 늘릴것인가 (4)
 parser.add_argument("-n", "--num_outputs", type=int, default=1, help="number of output textures required")	# 결과 텍스쳐 몇개 생성? (1)
-parser.add_argument("-f", "--output_file", type=str, default="output.png", help="output file name")	# 결과 어디에 저장? (output.png)
+parser.add_argument("-f", "--output_file", type=str, default="Result.png", help="output file name")	# 결과 어디에 저장? (output.png)
 parser.add_argument("-p", "--plot", type=int, default=1, help="Show plots")	# plot 보여줄 여부 (1)
 parser.add_argument("-t", "--tolerance", type=float, default=0.1, help="Tolerance fraction")	# 허용오차 (0.1)
 
@@ -51,7 +51,7 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 	# image = cv2.resize(image, (120, 120))
 	H, W = image.shape[:2]  # 이미지 Height, Width
 
-	image = image[H//2+50:H//2+150, W//2:W//2+100]	# 거품 이미지 확인 용 -> crop
+	image = image[H//2-50:H//2+250, W//2-50:W//2+250]	# 거품 이미지 확인 용 -> crop
 
 	# # 수정 - 추가부분
 	# # 이미지 사이즈 w,h중 작은 것에 맞춰서 정사각형으로 크기조절
