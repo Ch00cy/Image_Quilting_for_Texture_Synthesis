@@ -54,7 +54,7 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 
 	# image = image[H//2-50:H//2+250, W//2-50:W//2+250]	# 거품 이미지 확인 용 -> crop
 
-	img_size = 400
+	img_size = 200
 	# 수정 - 추가부분
 	# 이미지 사이즈 w,h중 작은 것에 맞춰서 정사각형으로 크기조절
 	if (H < img_size or W < img_size):
