@@ -54,15 +54,16 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 
 	# image = image[H//2-50:H//2+250, W//2-50:W//2+250]	# 거품 이미지 확인 용 -> crop
 
+	img_size = 400
 	# 수정 - 추가부분
 	# 이미지 사이즈 w,h중 작은 것에 맞춰서 정사각형으로 크기조절
-	if (H < 300 or W < 300):
+	if (H < img_size or W < img_size):
 		if H>W:
 			image = cv2.resize(image, (W, W))
 		else:
 			image = cv2.resize(image, (H, H))
 	else:
-		image = cv2.resize(image, (300, 300))
+		image = cv2.resize(image, (img_size, img_size))
 	# if H>W:
 	# 	image = cv2.resize(image, (W, W))
 	# else:
@@ -74,7 +75,6 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 	plt.imshow(image)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
 	plt.show()
 
-	H, W = image.shape[:2]	# 조정된 이미지 사이즈로 H, W 변경
 	outH, outW = int(scale * H), int(scale * W)  # 아웃풋 결과 : 이미지의 scale(4) 배로 키워줌
 	print("outH : {}".format(outH))
 
@@ -83,8 +83,8 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 	for i in range(args.num_outputs):	# 결과 개수 만큼 반복
 
 		# 수정
-		textureMap = foam_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance, 30)
-		# textureMap = fin_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
+		# textureMap = foam_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance, 30)
+		textureMap = fin_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
 
 		# 후처리
 		textureMap = (255 * textureMap).astype(np.uint8)
@@ -93,6 +93,7 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 		# Save
 		plt.imshow(textureMap)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
 		plt.show()
+
 		textureMap = (255*textureMap).astype(np.uint8)	# 최종 결과 텍스쳐 맵 -> 0~1, RGB 형태 => 원래대로로 돌림 (0~155 , BGR형태 , unit8)
 		textureMap = cv2.cvtColor(textureMap, cv2.COLOR_RGB2BGR)
 		cv2.imwrite(args.simual_output_file, textureMap)
