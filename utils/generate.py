@@ -1864,3 +1864,191 @@ def old_generateTextureMap(image, blocksize, overlap, outH, outW, tolerance):	# 
 		print("{} out of {} rows complete...".format(i+1, nH+1))
 
 	return textureMap
+
+#추가####################
+# foam data 에 대한 합성
+def foam_simple(image, blocksize, overlap, outH, outW, tolerance):	# main.py에서 사용되는 메인. tolerance : 허용요차
+	# 사용: generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
+	# ceil() : 소수점 자리의 숫자를 무조건 올리는 함수
+	nH = int(ceil((outH - blocksize)*1.0/(blocksize - overlap)))	# 최종 이미지 크기에 오버랩 부분을 제외한 실제 블록들이 몇개 들어가는가?
+	nW = int(ceil((outW - blocksize)*1.0/(blocksize - overlap)))	# 최종 이미지 크기에 오버랩 부분을 제외한 실제 블록들이 몇개 들어가는가?
+
+	textureMap = np.zeros(((blocksize + nH*(blocksize - overlap)), (blocksize + nW*(blocksize - overlap)), image.shape[2]))
+	# [(H기준 : nH(들어가는 블록개수) * (오버랩 뺀 블록실제사이즈) + 마지막에 오버랩 안되므로 블록 하나 더 사이즈) , (W기준 동일) , 색상] => 0으로 초기화
+	# Starting index and block
+	H, W = image.shape[:2]
+
+	pre_img8 = simual_RotateExImg(image, blocksize, overlap, tolerance)  # pre_img8 : [ [rotated_seta , mask] , [rotated_seta , mask] , .. ]
+	# => shape : (8, 2, h, w, 3)
+	tmp_img8 = list(zip(*pre_img8))  # [ [rotated_seta 끼리 ] , [mask 끼리] ] 로 형태 변환
+	img8 = tmp_img8[0]
+	img8_mask = tmp_img8[1]
+
+	# # 첫 블록 유의미하게 랜덤값 #################
+	# while True:
+	# 	randH = np.random.randint(H - blocksize)	# 블록사이즈 한줄 뺀 값에서 랜덤한 값
+	# 	randW = np.random.randint(W - blocksize)	# 블록사이즈 한줄 뺀 값에서 랜덤한 값
+	#
+	# 	count_black=0
+	# 	a=0
+	# 	for i in range(randH,randH + blocksize+1):
+	# 		for j in range(randW,randW + blocksize+1):
+	# 			a+=1
+	# 			if (image[i,j]==[0,0,0]).all():
+	# 				count_black += 1
+	# 	if count_black<(blocksize*blocksize*(1/2)):
+	# 		break
+	# ###########################
+
+
+	# tan 직선에 대한 mask ############
+	a, b = textureMap.shape[:2]	# a = h, b = w
+	c, d = a//2, b//2
+	tan_mask = np.zeros((a,b))
+
+	slope = 0	# 회전된 직선영역의 기울기
+	is_90 = False	# flag : 90도인가, 90도일경우에만 직선의 방정식 x= a 꼴이기 때문
+
+	if angle%90==0:
+		if angle%180==0:	# 180도 일 경우 y = y1 꼴
+			slope = 0
+		else:	# 90도 일 경우 x = x1 꼴
+			is_90 = True
+	else:	# 90, 180 도 배수 제외한 나머지 일 경우 y = ax + b
+		slope = math.tan(math.radians(angle))
+
+	flagi = 0
+	flagj = 0
+
+	tmpj = 0
+	for y in range(a):	# h
+		t = 0
+		for x in range(b):	# w
+			if is_90 == True:	# 각도 90도일 경우 특수 : x = d 꼴 / 나머지 : y = ~ 꼴
+				tan_line = d
+
+				if tan_line-30<=x and x<=tan_line+30:	# 기울어진 직선에서 얼만큼 두께를 줄 것인지
+					tan_mask[y,x] = 1
+					t+=1
+					textureMap[y,x]=(255,0,0)
+				elif tan_line-50<=x and x<=tan_line+50:
+					tan_mask[y,x] = 2
+					t+=1
+					textureMap[y,x]=(0,255,0)
+
+			else:
+				tan_line = (a-1) - (math.ceil(slope * (x - d)) + c )	# 정해진 각도를 기울기로 갖는 이미지 상 직선
+
+				if tan_line-30<=y and y<=tan_line+30:	# 기울어진 직선에서 얼만큼 두께를 줄 것인지
+					tan_mask[y,x] = 1
+					t+=1
+					textureMap[y,x]=(255,0,0)
+				elif tan_line-40<=y and y<=tan_line+40:	# 자연스러운 분포를 위해 겉에 한겹 더
+					tan_mask[y,x] = 2
+					t+=1
+					textureMap[y,x]=(0,255,0)
+	print("line generate finished")
+
+		# if t==0:	# for 문  y -> x 순으로 확인할 때 tan_line 이 짝수가 나오는 식이면 y 가 홀수일때 조건 만족하는 x를 찾을 수 없기 때문에 이전값을 저장했다가 그대로 씀
+		# 	tan_mask[y,tmpj] = 1
+		# 	textureMap[y, tmpj] = (255, 0, 0)
+
+	# plt.imshow(textureMap)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
+	# plt.show()
+	
+	# textureMap[flagi:flagi+blocksize, flagj:flagj+blocksize, :] = startBlock  # 0으로 초기화된 맵에서 첫번째 블록에 랜덤하게 가져온 블록 대입함
+	######################
+
+	where_white = []
+	where_mid = []
+	where_black = []
+
+	for r in range(len(img8)):
+		print("블록마다 유효값 계산 중")
+		for i in range(0, H-blocksize):
+			for j in range(0,W-blocksize):
+				if (img8_mask[r][i:i + blocksize, j:j + blocksize] == 1).all():
+					count_black = 0
+					# 한 블록 당 검은 부분 얼만큼?
+					for si in range(i, i + blocksize):
+						for sj in range(j, j + blocksize):
+							if (img8[r][si, sj] == [0, 0, 0]).all():
+								count_black += 1
+					# 검은 부분의 정도에 따라 나누기
+					if count_black <= (blocksize * blocksize * (1 / 3)):
+						where_white.append([i, j, r])
+					elif count_black <= (blocksize * blocksize * (2 / 3)):
+						where_mid.append([i, j, r])
+					elif count_black >= (blocksize * blocksize * (2 / 3)):
+						where_black.append([i, j, r])
+	print("블록 유효값 계산 완료")
+
+	################################
+
+	# 이제 만들어갈 texturemap 의 첫 블록 - 랜덤하게 끼워넣음
+
+	print("rand first block")
+	randH = np.random.randint(H - blocksize)  # 블록사이즈 한줄 뺀 값에서 랜덤한 값
+	randW = np.random.randint(W - blocksize)  # 블록사이즈 한줄 뺀 값에서 랜덤한 값
+
+
+	startBlock = image[randH:randH + blocksize, randW:randW + blocksize]  # 랜덤한 위치에서 시작하는 블록 사이즈만큼 잘라서 가져옴
+	textureMap[:blocksize, :blocksize, :] = startBlock  # 0으로 초기화된 맵에서 첫번째 블록에 랜덤하게 가져온 블록 대입함
+
+	print("generate start>>")
+	# Fill the first row : 행(아래 위)
+	for i, blkIdx in enumerate(range((blocksize-overlap), textureMap.shape[1]-overlap, (blocksize-overlap))):	# enumerate() : 인덱스와 원소 차례로 반환
+		# 오버랩 부분 제외 블록 부분부터 ~ 오버랩 제외 열들까지 , 오버랩 제외한 블록사이즈만큼 옆으로 이동 (오른 -> 왼)
+
+		# Find horizontal error for this block
+		# Calculate min, find index having tolerance
+		# Choose one randomly among them
+		# blkIdx = block index to put in
+		# blkIdx = 블록에서 오버랩 되는 부분 시작점 인덱스
+		refBlock = textureMap[:blocksize, (blkIdx-blocksize+overlap):(blkIdx+overlap)]	#texturemap 의 한줄제외 모든 행에 대하여 열단위로 블록 한 칸만큼 계속 이동하면서 대입
+		patchBlock = simual_findPatchHorizontal(refBlock, img8, img8_mask, blocksize, overlap, tolerance, tan_mask, blkIdx, where_white, where_black, where_mid)	# 미리 만든 패치 찾는 함수
+		minCutPatch = getMinCutPatchHorizontal(refBlock, patchBlock, blocksize, overlap)	# 미리 만든 최소 경로 찾는 함수
+		textureMap[:blocksize, (blkIdx):(blkIdx+blocksize)] = minCutPatch	# 오버랩부분 경계선 최소경로로 자름
+	print("{} out of {} rows complete...".format(1, nH+1))
+
+
+	### Fill the first column 열 (오른 왼쪽)
+	for i, blkIdx in enumerate(range((blocksize-overlap), textureMap.shape[0]-overlap, (blocksize-overlap))):	# # enumerate() : 인덱스와 원소 차례로 반환
+		# 오버랩 부분 제외 블록 부분부터 ~ 오버랩 제외 행들까지 , 오버랩 제외한 블록사이즈만큼 옆으로 이동 (위 -> 아래)
+
+		# Find vertical error for this block
+		# Calculate min, find index having tolerance
+		# Choose one randomly among them
+		# blkIdx = block index to put in
+		# blkIdx = 블록에서 오버랩 되는 부분 시작점 인덱스
+		refBlock = textureMap[(blkIdx-blocksize+overlap):(blkIdx+overlap), :blocksize]	#texturemap 의 한줄제외 모든 열에 대하여 행단위로 블록 한 칸만큼 계속 이동하면서 대입
+		patchBlock = simual_findPatchVertical(refBlock, img8, img8_mask, blocksize, overlap, tolerance, tan_mask, blkIdx, where_white, where_black, where_mid)	# 미리 만든 패치 찾는 함수
+		minCutPatch = getMinCutPatchVertical(refBlock, patchBlock, blocksize, overlap)	# 미리 만든 최소 경로 찾는 함수
+		textureMap[(blkIdx):(blkIdx+blocksize), :blocksize] = minCutPatch	# 오버랩부분 경계선 최소경로로 자름
+
+	### Fill in the other rows and columns
+	for i in range(1, nH+1):
+		for j in range(1, nW+1):
+			# Choose the starting index for the texture placement
+			blkIndexI = i*(blocksize-overlap)
+			blkIndexJ = j*(blocksize-overlap)
+			# Find the left and top block, and the min errors independently
+			refBlockLeft = textureMap[(blkIndexI):(blkIndexI+blocksize), (blkIndexJ-blocksize+overlap):(blkIndexJ+overlap)]
+			refBlockTop  = textureMap[(blkIndexI-blocksize+overlap):(blkIndexI+overlap), (blkIndexJ):(blkIndexJ+blocksize)]
+
+			patchBlock = simual_findPatchBoth(refBlockLeft, refBlockTop, img8, img8_mask, blocksize, overlap, tolerance, tan_mask, blkIndexI, blkIndexJ, where_white, where_black, where_mid)
+			minCutPatch = getMinCutPatchBoth(refBlockLeft, refBlockTop, patchBlock, blocksize, overlap)
+
+			textureMap[(blkIndexI):(blkIndexI+blocksize), (blkIndexJ):(blkIndexJ+blocksize)] = minCutPatch
+
+			# refBlockLeft = 0.5
+			# textureMap[(blkIndexI):(blkIndexI+blocksize), (blkIndexJ-blocksize+overlap):(blkIndexJ+overlap)] = refBlockLeft
+			# textureMap[(blkIndexI-blocksize+overlap):(blkIndexI+overlap), (blkIndexJ):(blkIndexJ+blocksize)] = [0.5, 0.6, 0.7]
+			# break
+		print("{} out of {} rows complete...".format(i+1, nH+1))
+		# break
+
+	return textureMap
+#############################
+#############################
+#############################

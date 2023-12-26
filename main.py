@@ -71,6 +71,8 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 	# image = cv2.resize(image, (60, 60))
 	print("image change : {}".format(image.shape))
 
+	H, W = image.shape[:2]  # 이미지 Height, Width
+
 	# crop 이미지 확인
 	plt.imshow(image)  # array의 값들을 색으로 환산해 이미지의 형태로 보여줌
 	plt.show()
@@ -84,7 +86,8 @@ if __name__ == "__main__":	# 해당 main.py 가 메인으로 불려왔을 때 �
 
 		# 수정
 		# textureMap = foam_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance, 30)
-		textureMap = fin_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
+		textureMap = foam_simple(image, block_size, overlap, outH, outW, args.tolerance)
+		# textureMap = fin_generateTextureMap(image, block_size, overlap, outH, outW, args.tolerance)
 
 		# 후처리
 		textureMap = (255 * textureMap).astype(np.uint8)
